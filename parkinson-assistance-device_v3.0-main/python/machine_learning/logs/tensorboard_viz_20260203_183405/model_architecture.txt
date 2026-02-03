@@ -1,0 +1,20 @@
+CNN+TCN Parkinson Model Architecture
+========================================
+
+Input Layer: (batch_size, 50, 9)
+├── Conv1D(16, 3) + BatchNorm
+├── SeparableConv1D(32, 3) + BatchNorm
+├── TCN Block 1 (dilation=1)
+│   ├── SeparableConv1D(32, 3)
+│   ├── BatchNorm + SeparableConv1D(32, 3)
+│   └── Residual Connection
+├── TCN Block 2 (dilation=2)
+│   ├── SeparableConv1D(32, 3)
+│   ├── BatchNorm + SeparableConv1D(32, 3)
+│   └── Residual Connection
+├── GlobalAveragePooling1D
+├── Dense(32, relu) + Dropout(0.2)
+└── Dense(5, softmax) - Parkinson Classification
+
+Total Parameters: 7,573
+Generated: 2026-02-03 18:34:06

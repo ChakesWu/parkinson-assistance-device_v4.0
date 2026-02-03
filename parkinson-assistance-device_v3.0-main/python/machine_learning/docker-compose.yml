@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  parkinson-ml:
+    build: .
+    container_name: parkinson_tensorboard
+    ports:
+      - "6006:6006"  # TensorBoard端口
+    volumes:
+      - ./logs:/app/logs  # 挂载日志目录到宿主机
+      - ./data:/app/data  # 挂载数据目录
+      - ./medical_data:/app/medical_data  # 挂载医学文献数据目录
+    environment:
+      - TF_ENABLE_ONEDNN_OPTS=0
+      - PYTHONUNBUFFERED=1
+      - TF_CPP_MIN_LOG_LEVEL=2  # 减少TensorFlow日志
+    deploy:
+      resources:
+        limits:
+          memory: 2G  # 限制内存使用
+        reservations:
+          memory: 1G
+    command: >
+      sh -c "
+        echo '🚀 启动帕金森症TensorBoard训练...' &&
+        echo '🌐 启动TensorBoard服务器...' &&
+        tensorboard --logdir=/app/logs --host=0.0.0.0 --port=6006 &
+        sleep 3 &&
+        echo '📊 TensorBoard已启动: http://localhost:6006' &&
+        echo '🎨 修复可视化图片字体问题...' &&
+        python fix_viz_docker.py &&
+        echo '📊 使用现有数据，开始训练...' &&
+        python docker_train_model.py &&
+        echo '🎉 训练完成！TensorBoard继续运行...' &&
+        wait
+      "
+
+  # 仅启动TensorBoard服务（如果已有训练结果）
+  tensorboard-only:
+    build: .
+    container_name: parkinson_tensorboard_only
+    ports:
+      - "6006:6006"
+    volumes:
+      - ./logs:/app/logs
+    command: tensorboard --logdir=/app/logs --host=0.0.0.0 --port=6006
+    profiles:
+      - tensorboard-only
