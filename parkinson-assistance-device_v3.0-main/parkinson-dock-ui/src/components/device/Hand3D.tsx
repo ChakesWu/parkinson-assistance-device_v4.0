@@ -315,11 +315,11 @@ class Hand3D {
     createFingers() {
         // 左手手指配置 (finger1=拇指, finger2=食指, finger3=中指, finger4=無名指, finger5=小指)
         const fingerConfigs = [
-            { name: 'thumb', position: [1.4, 0.3, 0.8], rotation: [0, 0, 0.4], scale: [0.9, 0.9, 0.8] },    // finger1: 拇指 (左手位置)
-            { name: 'index', position: [0.7, 0.3, 2.0], rotation: [0, 0, 0], scale: [1, 1, 1] },            // finger2: 食指
-            { name: 'middle', position: [0, 0.3, 2.1], rotation: [0, 0, 0], scale: [1, 1, 1.1] },           // finger3: 中指
-            { name: 'ring', position: [-0.7, 0.3, 2.0], rotation: [0, 0, 0], scale: [1, 1, 0.95] },         // finger4: 無名指
-            { name: 'pinky', position: [-1.3, 0.3, 1.6], rotation: [0, 0, -0.1], scale: [0.8, 0.8, 0.8] }  // finger5: 小指
+            { name: 'thumb', position: [1.6, 0, 0.2], rotation: [Math.PI / 2, 0, 0.6], scale: [0.9, 0.9, 0.8] },    // finger1: 拇指 (向外展開)
+            { name: 'index', position: [0.7, 0, 1.5], rotation: [Math.PI / 2, 0, 0], scale: [1, 1, 1] },            // finger2: 食指
+            { name: 'middle', position: [0, 0, 1.5], rotation: [Math.PI / 2, 0, 0], scale: [1, 1, 1.1] },           // finger3: 中指
+            { name: 'ring', position: [-0.7, 0, 1.5], rotation: [Math.PI / 2, 0, 0], scale: [1, 1, 0.95] },         // finger4: 無名指
+            { name: 'pinky', position: [-1.3, 0, 1.5], rotation: [Math.PI / 2, 0, -0.1], scale: [0.8, 0.8, 0.8] }  // finger5: 小指
         ];
         
         fingerConfigs.forEach((config, index) => {
@@ -437,10 +437,10 @@ class Hand3D {
             // @ts-ignore
             if (finger && finger.joints) {
                 // @ts-ignore
-                // 修改：使用正角度，讓手指在水平面上彎曲
+                // 修改：使用負角度，讓手指在水平面上向內彎曲
                 finger.joints.forEach((joint, jointIndex) => {
                     const jointBend = bendAngle * (jointIndex + 1) / (finger as any).joints.length;
-                    joint.rotation.x = jointBend; // 改為正角度，水平面彎曲
+                    joint.rotation.x = -jointBend; // 改為負角度，向內彎曲
                 });
             }
         }

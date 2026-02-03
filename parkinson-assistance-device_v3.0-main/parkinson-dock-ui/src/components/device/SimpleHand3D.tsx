@@ -255,12 +255,12 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
     // 创建5根手指 (左手邏輯：finger1=拇指, finger2=食指, finger3=中指, finger4=無名指, finger5=小指)
     // 修改：所有手指都與手掌在同一水平面，初始狀態為伸直
     const fingerConfigs: FingerConfig[] = [
-      // baseRotation: [x, y, z] - 設置為0確保與手掌在同一水平面
-      { name: 'thumb',  position: [1.7, 0.4, 1.2], scale: 0.9,  baseRotation: [0, 0, 0] },  // finger1: 拇指 - 水平伸直
-      { name: 'index',  position: [0.9, 0.4, 2.2], scale: 1.0,  baseRotation: [0, 0, 0] },  // finger2: 食指 - 水平伸直
-      { name: 'middle', position: [0,   0.4, 2.3], scale: 1.1,  baseRotation: [0, 0, 0] },  // finger3: 中指 - 水平伸直
-      { name: 'ring',   position: [-0.9, 0.4, 2.2], scale: 0.97, baseRotation: [0, 0, 0] }, // finger4: 無名指 - 水平伸直
-      { name: 'pinky',  position: [-1.7, 0.4, 1.9], scale: 0.82, baseRotation: [0, 0, 0] }  // finger5: 小指 - 水平伸直
+      // baseRotation: [x, y, z] - 設置為 Math.PI / 2 確保與手掌在同一水平面並向正確方向彎曲
+      { name: 'thumb',  position: [-1.9, 0, 0.6], scale: 0.9,  baseRotation: [Math.PI / 2, 0, 0.6] },  // finger1: 拇指 - 向外偏移並增加展開角度
+      { name: 'index',  position: [0.9, 0, 2.1], scale: 1.0,  baseRotation: [Math.PI / 2, 0, 0] },    // finger2: 食指 - 水平伸直
+      { name: 'middle', position: [0,   0, 2.2], scale: 1.1,  baseRotation: [Math.PI / 2, 0, 0] },    // finger3: 中指 - 水平伸直
+      { name: 'ring',   position: [-0.9, 0, 2.1], scale: 0.97, baseRotation: [Math.PI / 2, 0, 0] },   // finger4: 無名指 - 水平伸直
+      { name: 'pinky',  position: [-1.7, 0, 1.8], scale: 0.82, baseRotation: [Math.PI / 2, 0, -0.1] } // finger5: 小指 - 水平伸直
     ];
 
     fingerGroupsRef.current = [];
@@ -358,7 +358,7 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
     const dipAngle = (eased * maxDIP);
 
     // finger 結構：層級關節 [MCP, PIP, DIP]
-    // 修正：使用負角度，使手指往手掌內彎曲
+    // 修正：使用負角度，使手指在水平面上向內彎曲
     if (finger.children && finger.children.length >= 1) {
       const mcpPivot = finger.children[0] as THREE.Group;
       mcpPivot.rotation.x = -mcpAngle;

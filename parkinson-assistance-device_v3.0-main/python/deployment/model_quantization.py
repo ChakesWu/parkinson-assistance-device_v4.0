@@ -173,7 +173,7 @@ class ModelQuantizer:
             print(f"測試TFLite模型失敗: {e}")
             return None
     
-    def generate_arduino_header(self, model_path, header_path="arduino/libraries/model_data.h"):
+    def generate_arduino_header(self, model_path, header_path="arduino/main/complete_parkinson_device/model_data.h"):
         """生成Arduino C++頭文件"""
         try:
             # 讀取量化模型
