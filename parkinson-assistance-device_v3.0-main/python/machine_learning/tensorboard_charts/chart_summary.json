@@ -1,0 +1,15 @@
+{
+  "generation_time": "2026-02-03T22:34:52.889871",
+  "charts_generated": 3,
+  "files": [
+    "epoch_accuracy.svg",
+    "epoch_loss.svg",
+    "learning_rate.svg"
+  ],
+  "training_summary": {
+    "epochs": 17,
+    "final_accuracy": "0.998",
+    "final_loss": "0.0826",
+    "final_lr": "0.00025"
+  }
+}

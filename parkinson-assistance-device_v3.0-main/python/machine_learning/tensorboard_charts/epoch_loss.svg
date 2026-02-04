@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <style>
+            .chart-title { font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; fill: #333333; }
+            .axis-label { font-family: Arial, sans-serif; font-size: 12px; fill: #666666; }
+            .grid-line { stroke: #e0e0e0; stroke-width: 1; }
+            .train-line { stroke: #1f77b4; stroke-width: 2; fill: none; }
+            .val-line { stroke: #ff7f0e; stroke-width: 2; fill: none; }
+            .lr-line { stroke: #2ca02c; stroke-width: 2; fill: none; }
+        </style>
+    </defs>
+    
+    <!-- 背景 -->
+    <rect width="800" height="400" fill="#ffffff"/>
+    
+    <!-- 標題 -->
+    <text x="400" y="30" text-anchor="middle" class="chart-title">epoch_loss</text>
+    <line x1="60.0" y1="60" x2="60.0" y2="340" class="grid-line"/>
+    <line x1="145.0" y1="60" x2="145.0" y2="340" class="grid-line"/>
+    <line x1="230.0" y1="60" x2="230.0" y2="340" class="grid-line"/>
+    <line x1="315.0" y1="60" x2="315.0" y2="340" class="grid-line"/>
+    <line x1="400.0" y1="60" x2="400.0" y2="340" class="grid-line"/>
+    <line x1="485.0" y1="60" x2="485.0" y2="340" class="grid-line"/>
+    <line x1="570.0" y1="60" x2="570.0" y2="340" class="grid-line"/>
+    <line x1="655.0" y1="60" x2="655.0" y2="340" class="grid-line"/>
+    <line x1="740.0" y1="60" x2="740.0" y2="340" class="grid-line"/>
+    <line x1="60" y1="60.0" x2="740" y2="60.0" class="grid-line"/>
+    <line x1="60" y1="116.0" x2="740" y2="116.0" class="grid-line"/>
+    <line x1="60" y1="172.0" x2="740" y2="172.0" class="grid-line"/>
+    <line x1="60" y1="228.0" x2="740" y2="228.0" class="grid-line"/>
+    <line x1="60" y1="284.0" x2="740" y2="284.0" class="grid-line"/>
+    <line x1="60" y1="340.0" x2="740" y2="340.0" class="grid-line"/>
+    <line x1="60" y1="60" x2="60" y2="340" stroke="#666666" stroke-width="2"/>
+    <line x1="60" y1="340" x2="740" y2="340" stroke="#666666" stroke-width="2"/>
+    <text x="50" y="344.0" text-anchor="end" class="axis-label">0.00</text>
+    <text x="50" y="288.0" text-anchor="end" class="axis-label">0.18</text>
+    <text x="50" y="232.0" text-anchor="end" class="axis-label">0.36</text>
+    <text x="50" y="176.0" text-anchor="end" class="axis-label">0.53</text>
+    <text x="50" y="120.0" text-anchor="end" class="axis-label">0.71</text>
+    <text x="50" y="64.0" text-anchor="end" class="axis-label">0.89</text>
+    <text x="60.0" y="360" text-anchor="middle" class="axis-label">1</text>
+    <text x="145.0" y="360" text-anchor="middle" class="axis-label">3</text>
+    <text x="230.0" y="360" text-anchor="middle" class="axis-label">5</text>
+    <text x="315.0" y="360" text-anchor="middle" class="axis-label">7</text>
+    <text x="400.0" y="360" text-anchor="middle" class="axis-label">9</text>
+    <text x="485.0" y="360" text-anchor="middle" class="axis-label">11</text>
+    <text x="570.0" y="360" text-anchor="middle" class="axis-label">13</text>
+    <text x="655.0" y="360" text-anchor="middle" class="axis-label">15</text>
+    <text x="740.0" y="360" text-anchor="middle" class="axis-label">17</text>
+    <text x="400" y="390" text-anchor="middle" class="axis-label">Epoch</text>
+    <text x="20" y="200" text-anchor="middle" class="axis-label" transform="rotate(-90, 20, 200)">Loss</text>
+    <path d="M 60.0,85.45454545454547 L 102.5,120.47296664510333 L 145.0,150.61360108562874 L 187.5,176.55588556310076 L 230.0,198.8846167395489 L 272.5,218.1031337665687 L 315.0,234.6446646667854 L 357.5,248.8820922548835 L 400.0,261.1363597437337 L 442.5,271.6837055166333 L 485.0,280.7618901534812 L 527.5,288.5755560818755 L 570.0,295.3008406715652 L 612.5,301.0893467616397 L 655.0,306.0715601249518 L 697.5,310.3597909070061 L 740.0,314.0507053458716" class="train-line"/>
+    <line x1="650" y1="80" x2="670" y2="80" class="train-line"/>
+    <text x="675" y="84" class="axis-label">Training Loss</text>
+</svg>

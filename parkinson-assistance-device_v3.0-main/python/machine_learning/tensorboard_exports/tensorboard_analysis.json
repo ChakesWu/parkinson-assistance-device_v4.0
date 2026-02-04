@@ -1,0 +1,236 @@
+[
+  {
+    "run_name": "demo_experiment",
+    "log_dir": "logs\\demo_experiment",
+    "event_files": [
+      {
+        "name": "events.out.tfevents.demo",
+        "size": 32,
+        "size_mb": 0.0
+      }
+    ],
+    "other_files": [],
+    "file_sizes": {
+      "events.out.tfevents.demo": 32
+    },
+    "analysis_time": "2026-02-03T22:30:11.201268"
+  },
+  {
+    "run_name": "parkinson_docker_20260203_072109",
+    "log_dir": "logs\\parkinson_docker_20260203_072109",
+    "event_files": [
+      {
+        "name": "events.out.tfevents.1770103272.e43d439e7c7f.65.0.v2",
+        "size": 4158,
+        "size_mb": 0.0
+      },
+      {
+        "name": "events.out.tfevents.1770103272.e43d439e7c7f.65.1.v2",
+        "size": 47838,
+        "size_mb": 0.05
+      },
+      {
+        "name": "events.out.tfevents.1770103272.e43d439e7c7f.65.2.v2",
+        "size": 2103,
+        "size_mb": 0.0
+      }
+    ],
+    "other_files": [
+      {
+        "name": "best_model.h5",
+        "size": 225624,
+        "size_mb": 0.22
+      },
+      {
+        "name": "plugins",
+        "size": 0,
+        "size_mb": 0.0
+      },
+      {
+        "name": "projector_config.pbtxt",
+        "size": 0,
+        "size_mb": 0.0
+      },
+      {
+        "name": "train",
+        "size": 20480,
+        "size_mb": 0.02
+      },
+      {
+        "name": "validation",
+        "size": 0,
+        "size_mb": 0.0
+      }
+    ],
+    "file_sizes": {
+      "best_model.h5": 225624,
+      "events.out.tfevents.1770103272.e43d439e7c7f.65.0.v2": 4158,
+      "events.out.tfevents.1770103272.e43d439e7c7f.65.1.v2": 47838,
+      "events.out.tfevents.1770103272.e43d439e7c7f.65.2.v2": 2103,
+      "plugins": 0,
+      "projector_config.pbtxt": 0,
+      "train": 20480,
+      "validation": 0
+    },
+    "analysis_time": "2026-02-03T22:30:11.201868"
+  },
+  {
+    "run_name": "parkinson_docker_20260203_074253",
+    "log_dir": "logs\\parkinson_docker_20260203_074253",
+    "event_files": [
+      {
+        "name": "events.out.tfevents.1770104578.3d938522d8d0.16.0.v2",
+        "size": 4158,
+        "size_mb": 0.0
+      },
+      {
+        "name": "events.out.tfevents.1770104578.3d938522d8d0.16.1.v2",
+        "size": 47838,
+        "size_mb": 0.05
+      },
+      {
+        "name": "events.out.tfevents.1770104578.3d938522d8d0.16.2.v2",
+        "size": 2103,
+        "size_mb": 0.0
+      }
+    ],
+    "other_files": [
+      {
+        "name": "best_model.h5",
+        "size": 225624,
+        "size_mb": 0.22
+      },
+      {
+        "name": "plugins",
+        "size": 0,
+        "size_mb": 0.0
+      },
+      {
+        "name": "projector_config.pbtxt",
+        "size": 0,
+        "size_mb": 0.0
+      },
+      {
+        "name": "train",
+        "size": 20480,
+        "size_mb": 0.02
+      },
+      {
+        "name": "validation",
+        "size": 0,
+        "size_mb": 0.0
+      }
+    ],
+    "file_sizes": {
+      "best_model.h5": 225624,
+      "events.out.tfevents.1770104578.3d938522d8d0.16.0.v2": 4158,
+      "events.out.tfevents.1770104578.3d938522d8d0.16.1.v2": 47838,
+      "events.out.tfevents.1770104578.3d938522d8d0.16.2.v2": 2103,
+      "plugins": 0,
+      "projector_config.pbtxt": 0,
+      "train": 20480,
+      "validation": 0
+    },
+    "analysis_time": "2026-02-03T22:30:11.203983"
+  },
+  {
+    "run_name": "parkinson_docker_20260203_142025",
+    "log_dir": "logs\\parkinson_docker_20260203_142025",
+    "event_files": [
+      {
+        "name": "events.out.tfevents.1770128428.3d938522d8d0.16.0.v2",
+        "size": 1888,
+        "size_mb": 0.0
+      },
+      {
+        "name": "events.out.tfevents.1770128428.3d938522d8d0.16.1.v2",
+        "size": 47838,
+        "size_mb": 0.05
+      },
+      {
+        "name": "events.out.tfevents.1770128428.3d938522d8d0.16.2.v2",
+        "size": 2103,
+        "size_mb": 0.0
+      }
+    ],
+    "other_files": [
+      {
+        "name": "best_model.h5",
+        "size": 225624,
+        "size_mb": 0.22
+      },
+      {
+        "name": "plugins",
+        "size": 0,
+        "size_mb": 0.0
+      },
+      {
+        "name": "projector_config.pbtxt",
+        "size": 0,
+        "size_mb": 0.0
+      },
+      {
+        "name": "train",
+        "size": 8192,
+        "size_mb": 0.01
+      },
+      {
+        "name": "validation",
+        "size": 0,
+        "size_mb": 0.0
+      }
+    ],
+    "file_sizes": {
+      "best_model.h5": 225624,
+      "events.out.tfevents.1770128428.3d938522d8d0.16.0.v2": 1888,
+      "events.out.tfevents.1770128428.3d938522d8d0.16.1.v2": 47838,
+      "events.out.tfevents.1770128428.3d938522d8d0.16.2.v2": 2103,
+      "plugins": 0,
+      "projector_config.pbtxt": 0,
+      "train": 8192,
+      "validation": 0
+    },
+    "analysis_time": "2026-02-03T22:30:11.205947"
+  },
+  {
+    "run_name": "tensorboard_viz_20260203_183405",
+    "log_dir": "logs\\tensorboard_viz_20260203_183405",
+    "event_files": [
+      {
+        "name": "events.out.tfevents.1770114845.learning_rate",
+        "size": 2440,
+        "size_mb": 0.0
+      },
+      {
+        "name": "events.out.tfevents.1770114846.metrics",
+        "size": 4480,
+        "size_mb": 0.0
+      },
+      {
+        "name": "events.out.tfevents.1770114846.model",
+        "size": 643,
+        "size_mb": 0.0
+      }
+    ],
+    "other_files": [
+      {
+        "name": "model_architecture.txt",
+        "size": 720,
+        "size_mb": 0.0
+      },
+      {
+        "name": "visualization_report.html",
+        "size": 4400,
+        "size_mb": 0.0
+      }
+    ],
+    "file_sizes": {
+      "events.out.tfevents.1770114845.learning_rate": 2440,
+      "events.out.tfevents.1770114846.metrics": 4480,
+      "events.out.tfevents.1770114846.model": 643,
+      "model_architecture.txt": 720,
+      "visualization_report.html": 4400
+    },
+    "analysis_time": "2026-02-03T22:30:11.208811"
+  }
+]
