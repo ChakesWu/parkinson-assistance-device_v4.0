@@ -4,11 +4,9 @@
 """
 
 import numpy as np
-import pandas as pd
 import json
 import os
 from datetime import datetime, timedelta
-import matplotlib.pyplot as plt
 
 class ParkinsonSyntheticDataGenerator:
     def __init__(self, sequence_length=50, feature_dim=9):
@@ -330,12 +328,19 @@ class ParkinsonSyntheticDataGenerator:
     
     def visualize_sample_data(self, data_dir="data", save_plots=True):
         """可视化样本数据"""
-        print("📊 生成数据可视化...")
+        print("📊 Generating data visualization...")
+
+        try:
+            import matplotlib.pyplot as plt
+        except Exception as e:
+            print(f"⚠️ Visualization skipped because matplotlib could not be imported: {e}")
+            return False
+
+        plt.rcParams['font.family'] = ['DejaVu Sans', 'Arial', 'sans-serif']
+        plt.rcParams['axes.unicode_minus'] = False
         
         # 读取每个等级的一个样本
         fig, axes = plt.subplots(5, 3, figsize=(15, 20))
-        fig.suptitle('合成帕金森症传感器数据样本', fontsize=16)
-        
         for level in range(1, 6):
             # 找到该等级的第一个文件
             for filename in os.listdir(data_dir):
@@ -358,33 +363,33 @@ class ParkinsonSyntheticDataGenerator:
                     # 绘制手指数据
                     ax1 = axes[level-1, 0]
                     for i in range(5):
-                        ax1.plot(time_axis, fingers[:, i], label=f'手指{i+1}', alpha=0.7)
-                    ax1.set_title(f'等级{level} - 手指弯曲')
-                    ax1.set_ylabel('弯曲度')
+                        ax1.plot(time_axis, fingers[:, i], label=f'Finger {i+1}', alpha=0.7)
+                    ax1.set_title(f'Level {level} - Finger Flexion')
+                    ax1.set_ylabel('Flexion')
                     ax1.legend(fontsize=8)
                     ax1.grid(True, alpha=0.3)
                     
                     # 绘制EMG数据
                     ax2 = axes[level-1, 1]
                     ax2.plot(time_axis, emg, 'r-', linewidth=1)
-                    ax2.set_title(f'等级{level} - EMG信号')
-                    ax2.set_ylabel('EMG幅值')
+                    ax2.set_title(f'Level {level} - EMG Signal')
+                    ax2.set_ylabel('EMG Amplitude')
                     ax2.grid(True, alpha=0.3)
                     
                     # 绘制IMU数据
                     ax3 = axes[level-1, 2]
-                    ax3.plot(time_axis, imu[:, 0], 'b-', label='X轴', alpha=0.7)
-                    ax3.plot(time_axis, imu[:, 1], 'g-', label='Y轴', alpha=0.7)
-                    ax3.plot(time_axis, imu[:, 2], 'r-', label='Z轴', alpha=0.7)
-                    ax3.set_title(f'等级{level} - IMU加速度')
-                    ax3.set_ylabel('加速度(g)')
+                    ax3.plot(time_axis, imu[:, 0], 'b-', label='X-axis', alpha=0.7)
+                    ax3.plot(time_axis, imu[:, 1], 'g-', label='Y-axis', alpha=0.7)
+                    ax3.plot(time_axis, imu[:, 2], 'r-', label='Z-axis', alpha=0.7)
+                    ax3.set_title(f'Level {level} - IMU Acceleration')
+                    ax3.set_ylabel('Acceleration (g)')
                     ax3.legend(fontsize=8)
                     ax3.grid(True, alpha=0.3)
                     
                     if level == 5:  # 最后一行添加x轴标签
-                        ax1.set_xlabel('时间(秒)')
-                        ax2.set_xlabel('时间(秒)')
-                        ax3.set_xlabel('时间(秒)')
+                        ax1.set_xlabel('Time (s)')
+                        ax2.set_xlabel('Time (s)')
+                        ax3.set_xlabel('Time (s)')
                     
                     break
         
@@ -393,7 +398,7 @@ class ParkinsonSyntheticDataGenerator:
         if save_plots:
             plot_path = os.path.join(data_dir, 'sample_data_visualization.png')
             plt.savefig(plot_path, dpi=300, bbox_inches='tight')
-            print(f"📊 可视化图表已保存: {plot_path}")
+            print(f"📊 Visualization chart saved: {plot_path}")
         
         plt.show()
 

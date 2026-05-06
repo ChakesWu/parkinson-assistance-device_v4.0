@@ -1,0 +1,20 @@
+{
+  "dataset_info": {
+    "generation_time": "2026-04-29T16:10:00.561434",
+    "total_sessions": 234,
+    "parkinson_levels": 5,
+    "features": {
+      "fingers": 5,
+      "emg": 1,
+      "imu": 3
+    },
+    "sequence_length": 50,
+    "sampling_rate": 10
+  },
+  "data_characteristics": {
+    "tremor_frequencies": "4.5-6.5 Hz",
+    "measurement_noise": "Gaussian (σ=0.02-0.05)",
+    "session_duration": "180-420 seconds",
+    "realistic_symptoms": true
+  }
+}

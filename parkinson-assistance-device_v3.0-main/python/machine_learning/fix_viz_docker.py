@@ -12,21 +12,20 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
 def setup_font():
-    """设置字体以避免中文乱码"""
-    # 设置字体为英文，避免中文乱码
+    """Set a font that renders English cleanly"""
     plt.rcParams['font.family'] = ['DejaVu Sans', 'Arial', 'sans-serif']
     plt.rcParams['axes.unicode_minus'] = False
     plt.rcParams['font.size'] = 10
 
 def regenerate_clean_visualization(data_dir="medical_data"):
-    """重新生成清晰的可视化图片"""
+    """Regenerate a clean English visualization image"""
     
-    print("🎨 重新生成可视化图片...")
+    print("🎨 Regenerating visualization image...")
     setup_font()
     
     # 创建图表
     fig, axes = plt.subplots(5, 3, figsize=(16, 20))
-    fig.suptitle('Parkinson Disease Synthetic Data - Medical Literature Based', 
+    fig.suptitle('Parkinson Disease Synthetic Data', 
                  fontsize=18, fontweight='bold', y=0.98)
 
     if not os.path.exists(data_dir):
@@ -40,7 +39,7 @@ def regenerate_clean_visualization(data_dir="medical_data"):
 
     print(f"📁 Found {len(json_files)} data files")
 
-    # 定义颜色方案
+    # Define the color scheme
     finger_colors = ['#e74c3c', '#f39c12', '#f1c40f', '#27ae60', '#3498db']
     finger_names = ['Pinky', 'Ring', 'Middle', 'Index', 'Thumb']
     imu_colors = ['#3498db', '#27ae60', '#e74c3c']
@@ -84,7 +83,7 @@ def regenerate_clean_visualization(data_dir="medical_data"):
         sampling_rate = float(chosen.get('sampling_rate', 10))
         time_axis = np.arange(len(data_points)) / sampling_rate
 
-        # 手指弯曲度图表
+        # Finger flexion chart
         ax1 = axes[level-1, 0]
         for i in range(5):
             ax1.plot(time_axis, fingers[:, i], 
@@ -100,7 +99,7 @@ def regenerate_clean_visualization(data_dir="medical_data"):
         ax1.grid(True, alpha=0.3, linestyle='--')
         ax1.set_xlim(0, time_axis[-1])
 
-        # EMG信号图表
+        # EMG signal chart
         ax2 = axes[level-1, 1]
         ax2.plot(time_axis, emg, color='#e74c3c', linewidth=1.5, alpha=0.8)
         ax2.set_title(f'UPDRS Level {level} - EMG Signal', 
@@ -109,7 +108,7 @@ def regenerate_clean_visualization(data_dir="medical_data"):
         ax2.grid(True, alpha=0.3, linestyle='--')
         ax2.set_xlim(0, time_axis[-1])
 
-        # IMU加速度图表
+        # IMU acceleration chart
         ax3 = axes[level-1, 2]
         for i in range(3):
             ax3.plot(time_axis, imu[:, i], 
@@ -125,17 +124,17 @@ def regenerate_clean_visualization(data_dir="medical_data"):
         ax3.grid(True, alpha=0.3, linestyle='--')
         ax3.set_xlim(0, time_axis[-1])
 
-        # 只在最后一行添加x轴标签
+        # Add x-axis labels only on the last row
         if level == 5:
             ax1.set_xlabel('Time (seconds)', fontsize=11)
             ax2.set_xlabel('Time (seconds)', fontsize=11)
             ax3.set_xlabel('Time (seconds)', fontsize=11)
 
-    # 调整布局
+    # Adjust layout
     plt.tight_layout()
     plt.subplots_adjust(top=0.96, hspace=0.3, wspace=0.3)
 
-    # 保存图片
+    # Save the image
     plot_path = os.path.join(data_dir, 'sample_data_visualization.png')
     plt.savefig(plot_path, dpi=300, bbox_inches='tight', 
                 facecolor='white', edgecolor='none', 

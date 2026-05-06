@@ -16,7 +16,7 @@ const testimonials = [
     role: "帕金森患者",
   },
   {
-    text: "妈妈最大的愿望就是能再次为我们包饺子。看到她每天坚持训练，我们全家都很感动。这个系统给了我们全家希望。",
+    text: "妈妈最大的愿望就是能再次为我们包饺子。这个让希望重新燃起。",
     image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
     name: "Emily Rodriguez",
     role: "患者女儿",

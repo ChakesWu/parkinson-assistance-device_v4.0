@@ -337,8 +337,7 @@ class MedicalLiteratureDataGenerator:
     def visualize_sample_data(self, data_dir="medical_data", save_plots=True):
         try:
             import matplotlib.pyplot as plt
-            # 设置中文字体，避免乱码
-            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS', 'sans-serif']
+            plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial', 'sans-serif']
             plt.rcParams['axes.unicode_minus'] = False
         except Exception as e:
             raise ImportError(
@@ -348,7 +347,7 @@ class MedicalLiteratureDataGenerator:
             )
 
         fig, axes = plt.subplots(5, 3, figsize=(15, 20))
-        fig.suptitle('Medical Literature-Based Parkinson Synthetic Data Visualization', fontsize=16)
+        fig.suptitle('Parkinson Synthetic Data Visualization', fontsize=16)
 
         if not os.path.exists(data_dir):
             raise ValueError(f"数据目录 {data_dir} 不存在")
@@ -386,7 +385,7 @@ class MedicalLiteratureDataGenerator:
 
             ax1 = axes[level-1, 0]
             for i in range(5):
-                ax1.plot(time_axis, fingers[:, i], label=f'Finger{i+1}', alpha=0.7)
+                ax1.plot(time_axis, fingers[:, i], label=f'Finger {i+1}', alpha=0.7)
             ax1.set_title(f'UPDRS Level {level} - Finger Flexion')
             ax1.set_ylabel('Flexion')
             ax1.legend(fontsize=8)
