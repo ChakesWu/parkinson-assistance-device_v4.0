@@ -20,8 +20,10 @@
 
 #include <Arduino.h>
 #include "Arduino_BMI270_BMM150.h"
-#include <Servo.h>
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
 #include <ArduinoBLE.h>
+#include "CheezsEMG.h"  // EMG 信號處理庫
 #define USE_SERVO_EEPROM 0
 #if USE_SERVO_EEPROM
 #include <EEPROM.h>
@@ -48,6 +50,10 @@
 // Device Detection Pins
 #define PIN_POT_DETECT    2
 #define PIN_EMG_DETECT    3
+#define PIN_EMG_WEAR      9   // CheezsEMG 佔戴偵測 (D9, 黄線)
+
+// CheezsEMG 處理器 — 信號腳=A6, 佔戴偵測=D9, 取樣=500Hz
+CheezsEMG emgProcessor(PIN_EMG, PIN_EMG_WEAR, 500);
 
 // Button and LED
 #define PIN_BUTTON        4
@@ -144,12 +150,13 @@ struct SpeechResult {
 
 SpeechResult lastSpeechResult;
 
-// Global Objects
-Servo rehabServo;
-
-// Multi-servo support
-Servo fingerServos[5];
-const int SERVO_PINS[5] = { PIN_SERVO_THUMB, PIN_SERVO_INDEX, PIN_SERVO_MIDDLE, PIN_SERVO_RING, PIN_SERVO_PINKY };
+// PCA9685 servo driver (SDA=A4, SCL=A5, addr=0x40)
+#define PCA_SERVO_FREQ  50
+#define PCA_SERVO_MIN   150
+#define PCA_SERVO_MAX   600
+// Finger ID -> PCA9685 channel: Thumb(0)=ch6, Index(1)=ch4, Middle(2)=ch3, Ring(3)=ch1, Pinky(4)=ch0
+const int PCA_CH_MAP[5] = {6, 4, 3, 1, 0};
+Adafruit_PWMServoDriver pcaDriver = Adafruit_PWMServoDriver(0x40);
 
 struct ServoConfig {
   uint32_t signature;            // signature
@@ -180,22 +187,36 @@ int trainingLevelNonBlocking = 2; // 1..5
 #define TRAIN_MODE_E_OPPOSE   1   // 拇指對指敲擊 (細動作協調, MDS-UPDRS opposition)
 #define TRAIN_MODE_F_HOLD     2   // 持續伸展保持 (改善 rigidity)
 #define TRAIN_MODE_G_RAMP     3   // 漸進阻力斜坡 (力量訓練)
+#define TRAIN_MODE_A_TAP      4   // 手指敲擊 2Hz，同時 REST<->HALF
+#define TRAIN_MODE_B_AMP      5   // 大幅度 0.25Hz，同時 REST<->FULL
+#define TRAIN_MODE_C_SEQ      6   // 順序單指 REST->FULL->REST
+#define TRAIN_MODE_D_GRIP     7   // 握拳/放鬆 0.5Hz，同時 REST<->FULL
 
 // 主程式手指順序: index 0=Thumb, 1=Index, 2=Middle, 3=Ring, 4=Pinky
-// 校準後的 REST / MAX 角度 (來自 pca9685_calib_debug 校準)
-const int trainRestAngle[5] = { 60,  10,  50,  10,  30};   // Thumb, Index, Middle, Ring, Pinky
-const int trainMaxAngle[5]  = {140,  60, 130, 130, 100};
+// 校準後的 REST / MAX 角度 (來自 pca9685_calib_debug 校準，可用 SETREST/SETMAX 即時調整)
+int trainRestAngle[5] = { 60,  10,  50,  10,  30};   // Thumb, Index, Middle, Ring, Pinky
+int trainMaxAngle[5]  = {140,  60, 130, 130, 100};
 const int TRAIN_IDX_THUMB = 0;
+const char* TRAIN_FINGER_NAMES[5] = {"Thumb","Index","Middle","Ring","Pinky"};
 
-// 訓練 E/F/G 狀態
-int  trainPhaseDirEFG = 0;     // E: 0=出, 1=收
-int  trainPhaseStepEFG = 0;    // F: 0=ext,1=hold,2=ret,3=rest;  G: 0=up,1=peak,2=down
-int  trainSeqFinger = 0;       // F/G: 當前手指
+// 舵機停用表 (true = 訓練時跳過, 用於連續旋轉或損壞的舵機)
+bool servoDisabled[5] = {false, false, false, false, false}; // Thumb,Index,Middle,Ring,Pinky
+
+// 訓練狀態 (A/B/C/D/E/F/G 共用)
+int  trainPhaseDirEFG = 0;     // A/B/C/D/E: 0=往目標, 1=返REST
+int  trainPhaseStepEFG = 0;    // F/G 子階段
+int  trainSeqFinger = 0;       // C/F/G: 當前手指
 int  trainPairFinger = 1;      // E: 拇指配對手指 (1=Index → 4=Pinky)
+int  trainRepsNonBlocking = 0; // 完整循環計數
 unsigned long trainPhaseStartMs = 0;
 
-// 各 phase 持續時間 (ms)
-const int HC_E_TAP    = 300;    // E 每 phase
+// 各 phase 持續時間 (ms) — 與 pca9685_calib_debug 一致
+const int TRAIN_UPDATE_MS = 40; // 訓練 tick 間隔 (Mode B 改用 200ms)
+const int HC_A       = 250;    // A 半周期 (2Hz)
+const int HC_B       = 2000;   // B 半周期 (0.25Hz)
+const int HC_C       = 800;    // C 每指每半段
+const int HC_D       = 1000;   // D 半周期 (0.5Hz)
+const int HC_E_TAP   = 300;    // E 每 phase
 const int HC_F_EXT    = 1500;
 const int HC_F_HOLDMS = 3000;
 const int HC_F_RET    = 1500;
@@ -302,6 +323,8 @@ bool isPotentiometerConnected();
 bool isEMGConnected();
 void controlServo(int angle);
 void printSystemStatus();
+void printCommandHelp();
+void initServosToRest();
 void sendContinuousWebData();
 void readRawSensorDataForWeb(float* data);
 void sendRawDataToWeb(float* rawData);
@@ -342,12 +365,14 @@ void setup() {
     pinMode(PIN_POT_DETECT, INPUT_PULLUP);
     pinMode(PIN_EMG_DETECT, INPUT_PULLUP);
 
-    rehabServo.attach(PIN_SERVO);
-    rehabServo.write(90);
-    // Attach 5 servos and set to neutral
+    // Initialize PCA9685 servo driver (same as pca9685_calib_debug)
+    Serial.print("Init PCA9685... ");
+    pcaDriver.begin();
+    pcaDriver.setOscillatorFrequency(27000000);
+    pcaDriver.setPWMFreq(PCA_SERVO_FREQ);
+    delay(10);
+    Serial.println("OK (servos at neutral, not moved)");
     for (int i = 0; i < 5; i++) {
-        fingerServos[i].attach(SERVO_PINS[i]);
-        fingerServos[i].write(90);
         currentServoAngle[i] = 90;
     }
 
@@ -387,7 +412,7 @@ void setup() {
     Serial.println(isEMGConnected() ? "已连接" : "模拟模式");
     Serial.println("================");
     Serial.println("💡 提示: 如果电位器显示'模拟模式'，请用跳线连接D2引脚到GND");
-    Serial.println("💡 支持命令: STATUS, AUTO, CALIBRATE, TRAIN, SPEECH, MULTIMODAL, DIAGNOSE");
+    Serial.println("💡 发送 HELP 查看所有串口/BLE命令");
     Serial.println("🔧 如果小指数据异常，请发送 DIAGNOSE 命令进行硬件检测");
 
     // 检查电位器连接状态，如果连接则自动开始校准
@@ -410,6 +435,13 @@ void loop() {
 
     // Handle serial commands
     handleSerialCommands();
+
+    // EMG 信號處理 (500Hz 內部限速)
+    if (isEMGConnected()) {
+        if (emgProcessor.checkSampleInterval()) {
+            emgProcessor.processSignal();
+        }
+    }
 
     // Continuously send real-time data to web and BLE
     sendContinuousWebData();
@@ -478,6 +510,8 @@ void handleSerialCommands() {
             startCalibration();
         } else if (cmd == "STATUS") {
             printSystemStatus();
+        } else if (cmd == "HELP") {
+            printCommandHelp();
         } else if (cmd.startsWith("SERVO_SET")) {
             int comma1 = cmd.indexOf(',');
             int comma2 = cmd.indexOf(',', comma1 + 1);
@@ -556,6 +590,57 @@ void handleSerialCommands() {
         } else if (cmd == "TRAIN_STOP") {
             stopServoTraining();
             Serial.println("OK,TRAIN_STOP");
+        } else if (cmd == "INIT") {
+            initServosToRest();
+            Serial.println("OK,INIT");
+        } else if (cmd.startsWith("SERVO_DISABLE")) {
+            int c = cmd.indexOf(',');
+            if (c > 0) { int id = cmd.substring(c + 1).toInt(); if (id >= 0 && id < 5) { servoDisabled[id] = true; Serial.print("OK,SERVO_DISABLE,"); Serial.println(id); } else Serial.println("ERR,bad id"); }
+            else Serial.println("ERR,usage SERVO_DISABLE,<id>");
+        } else if (cmd.startsWith("SERVO_ENABLE")) {
+            int c = cmd.indexOf(',');
+            if (c > 0) { int id = cmd.substring(c + 1).toInt(); if (id >= 0 && id < 5) { servoDisabled[id] = false; Serial.print("OK,SERVO_ENABLE,"); Serial.println(id); } else Serial.println("ERR,bad id"); }
+            else Serial.println("ERR,usage SERVO_ENABLE,<id>");
+        } else if (cmd.startsWith("TRAIN_A")) {
+            unsigned long dur = 30000;
+            int comma = cmd.indexOf(',');
+            if (comma > 0) dur = (unsigned long) cmd.substring(comma + 1).toInt();
+            startServoTraining(dur, TRAIN_MODE_A_TAP, trainingLevelNonBlocking);
+            Serial.println("OK,TRAIN_A");
+        } else if (cmd.startsWith("TRAIN_B")) {
+            unsigned long dur = 30000;
+            int comma = cmd.indexOf(',');
+            if (comma > 0) dur = (unsigned long) cmd.substring(comma + 1).toInt();
+            startServoTraining(dur, TRAIN_MODE_B_AMP, trainingLevelNonBlocking);
+            Serial.println("OK,TRAIN_B");
+        } else if (cmd.startsWith("TRAIN_C")) {
+            unsigned long dur = 60000;
+            int comma = cmd.indexOf(',');
+            if (comma > 0) dur = (unsigned long) cmd.substring(comma + 1).toInt();
+            startServoTraining(dur, TRAIN_MODE_C_SEQ, trainingLevelNonBlocking);
+            Serial.println("OK,TRAIN_C");
+        } else if (cmd.startsWith("TRAIN_D")) {
+            unsigned long dur = 30000;
+            int comma = cmd.indexOf(',');
+            if (comma > 0) dur = (unsigned long) cmd.substring(comma + 1).toInt();
+            startServoTraining(dur, TRAIN_MODE_D_GRIP, trainingLevelNonBlocking);
+            Serial.println("OK,TRAIN_D");
+        } else if (cmd.startsWith("SETREST")) {
+            int c1 = cmd.indexOf(','), c2 = cmd.indexOf(',', c1 + 1);
+            if (c1 > 0 && c2 > c1) {
+                int id = cmd.substring(c1 + 1, c2).toInt();
+                int ang = constrain(cmd.substring(c2 + 1).toInt(), 0, 180);
+                if (id >= 0 && id < 5) { trainRestAngle[id] = ang; Serial.print("OK,SETREST,"); Serial.print(id); Serial.print(","); Serial.println(ang); }
+                else Serial.println("ERR,SETREST,bad id");
+            } else Serial.println("ERR,SETREST,usage SETREST,<id>,<angle>");
+        } else if (cmd.startsWith("SETMAX")) {
+            int c1 = cmd.indexOf(','), c2 = cmd.indexOf(',', c1 + 1);
+            if (c1 > 0 && c2 > c1) {
+                int id = cmd.substring(c1 + 1, c2).toInt();
+                int ang = constrain(cmd.substring(c2 + 1).toInt(), 0, 180);
+                if (id >= 0 && id < 5) { trainMaxAngle[id] = ang; Serial.print("OK,SETMAX,"); Serial.print(id); Serial.print(","); Serial.println(ang); }
+                else Serial.println("ERR,SETMAX,bad id");
+            } else Serial.println("ERR,SETMAX,usage SETMAX,<id>,<angle>");
         } else if (cmd.startsWith("SERVO")) {
             // legacy: SERVO,90 -> set all fingers and legacy servo
             int angle = cmd.substring(6).toInt();
@@ -815,7 +900,7 @@ void performTrainingSequence(int maxResistance, int cycles) {
         // Progressive resistance training
         for (int resistance = 0; resistance <= maxResistance; resistance += 15) {
             int servoAngle = 90 + resistance;
-            rehabServo.write(servoAngle);
+            for (int i = 0; i < 5; i++) writeFingerServo(i, servoAngle);
             
             Serial.print("Resistance: ");
             Serial.print(resistance);
@@ -839,7 +924,7 @@ void performTrainingSequence(int maxResistance, int cycles) {
         }
         
         // Return to neutral and rest
-        rehabServo.write(90);
+        for (int i = 0; i < 5; i++) writeFingerServo(i, 90);
         Serial.println("TensorFlowLiteInference initialized");
         //n("Resting...");
         delay(2000);
@@ -972,7 +1057,7 @@ float readFingerValue(int pin) {
 
 float readEMGValue() {
     if (isEMGConnected()) {
-        return analogRead(PIN_EMG);
+        return (float)emgProcessor.getEnvelopeSignal();  // 包絡信號 (0~1023)
     } else {
         // Simulate EMG signal
         unsigned long currentTime = millis();
@@ -1011,7 +1096,6 @@ bool isEMGConnected() {
 
 void controlServo(int angle) {
     angle = constrain(angle, 0, 180);
-    rehabServo.write(angle);
     for (int i = 0; i < 5; i++) writeFingerServo(i, angle);
     Serial.print("Servo angle set to: ");
     Serial.println(angle);
@@ -1065,6 +1149,50 @@ void printSystemStatus() {
     Serial.println("=====================");
 }
 
+void printCommandHelp() {
+    Serial.println("=== Command Help ===");
+    Serial.println("Basic:");
+    Serial.println("  HELP");
+    Serial.println("  STATUS");
+    Serial.println("  START");
+    Serial.println("  CALIBRATE");
+    Serial.println("  AUTO");
+    Serial.println("  STOP");
+    Serial.println("Analysis:");
+    Serial.println("  SPEECH");
+    Serial.println("  MULTIMODAL");
+    Serial.println("  DIAGNOSE");
+    Serial.println("Training:");
+    Serial.println("  INIT            - all servos to REST");
+    Serial.println("  TRAIN_A[,ms]    - Tapping 2Hz REST<->HALF");
+    Serial.println("  TRAIN_B[,ms]    - Amplitude 0.25Hz REST<->FULL");
+    Serial.println("  TRAIN_C[,ms]    - Sequential single finger");
+    Serial.println("  TRAIN_D[,ms]    - Grip/relax 0.5Hz");
+    Serial.println("  TRAIN_E[,ms]    - Opposition thumb tapping");
+    Serial.println("  TRAIN_F[,ms]    - Sustained hold 3s");
+    Serial.println("  TRAIN_G[,ms]    - Progressive ramp");
+    Serial.println("  TRAIN_AUTO      - auto select by level");
+    Serial.println("  TRAIN_STOP");
+    Serial.println("  SETREST,<id>,<angle> - set finger REST angle");
+    Serial.println("  SETMAX,<id>,<angle>  - set finger MAX angle");
+    Serial.println("Servo:");
+    Serial.println("  SERVO,angle");
+    Serial.println("  SERVO_SET,finger_id,angle");
+    Serial.println("  SERVO_INIT,thumb,index,middle,ring,pinky");
+    Serial.println("  SERVO_LIMIT,finger_id,min_angle,max_angle");
+    Serial.println("  SERVO_SAVE");
+    Serial.println("  SERVO_LOAD");
+    Serial.println("Communication:");
+    Serial.println("  COMM_SERIAL");
+    Serial.println("  COMM_BLE");
+    Serial.println("  COMM_BOTH");
+    Serial.println("Mode IDs:");
+    Serial.println("  0=SINE, 1=TRAIN_E_OPPOSE, 2=TRAIN_F_HOLD, 3=TRAIN_G_RAMP");
+    Serial.println("Finger IDs:");
+    Serial.println("  0=Thumb, 1=Index, 2=Middle, 3=Ring, 4=Pinky");
+    Serial.println("====================");
+}
+
 void sendContinuousWebData() {
     // Continuously send real-time data to web and BLE
     unsigned long currentTime = millis();
@@ -1102,10 +1230,11 @@ static inline int clampToLimits(int fingerId, int angle) {
 
 void writeFingerServo(int fingerId, int targetAngle) {
     if (fingerId < 0 || fingerId > 4) return;
-    int a = applyDirectionAndZero(fingerId, targetAngle);
-    a = clampToLimits(fingerId, a);
-    fingerServos[fingerId].write(a);
-    currentServoAngle[fingerId] = a;
+    targetAngle = constrain(targetAngle, 0, 180);
+    int physicalAngle = servoConfig.directionReversed[fingerId] ? 180 - targetAngle : targetAngle;
+    pcaDriver.setPWM(PCA_CH_MAP[fingerId], 0, map(physicalAngle, 0, 180, PCA_SERVO_MIN, PCA_SERVO_MAX));
+    currentServoAngle[fingerId] = targetAngle;
+    delayMicroseconds(2000);
 }
 
 bool setFingerServoAngle(int fingerId, int angle) {
@@ -1176,142 +1305,199 @@ void echoServoConfig() {
     Serial.println();
 }
 
+void initServosToRest() {
+    Serial.println("[INIT] Moving all servos to REST...");
+    for (int i = 0; i < 5; i++) {
+        writeFingerServo(i, trainRestAngle[i]);
+        Serial.print("  "); Serial.print(TRAIN_FINGER_NAMES[i]);
+        Serial.print(" -> "); Serial.print(trainRestAngle[i]); Serial.println("deg");
+    }
+}
+
 void startServoTraining(unsigned long durationMs, int mode, int level) {
+    initServosToRest();
+    delay(400);
     trainingActive = true;
     trainingStartTime = millis();
     trainingDurationMs = durationMs;
     trainingModeNonBlocking = mode;
     trainingLevelNonBlocking = constrain(level, 1, 5);
-    // 重置 E/F/G 狀態 (對 sine mode 無影響)
     trainPhaseDirEFG  = 0;
     trainPhaseStepEFG = 0;
     trainSeqFinger    = 0;
     trainPairFinger   = 1;
+    trainRepsNonBlocking = 0;
     trainPhaseStartMs = millis();
+    lastTrainingStepTime = 0;
     currentState = STATE_TRAINING;
+    Serial.print("[TRAIN mode="); Serial.print(mode);
+    Serial.print(" dur="); Serial.print(durationMs / 1000);
+    Serial.println("s] Started | type TRAIN_STOP to stop");
 }
 
 void stopServoTraining() {
     trainingActive = false;
-    for (int i = 0; i < 5; i++) writeFingerServo(i, 90);
+    for (int i = 0; i < 5; i++) writeFingerServo(i, trainRestAngle[i]);
     currentState = STATE_IDLE;
+    Serial.println("[TRAIN_STOP] Servos returned to REST");
 }
 
-// ===== 訓練模式 E/F/G 子邏輯 (新增, 不影響原 sine 模式) =====
-// 所有模式都只讓 0~2 個舵機同時動作, 其他維持 REST 避免電源崩
-static void tickTrainE_Opposition(unsigned long now, unsigned long phaseElapsed) {
-    // 拇指 + pairFinger 同步 REST<->HALF
-    int t_half = trainRestAngle[TRAIN_IDX_THUMB] + (trainMaxAngle[TRAIN_IDX_THUMB] - trainRestAngle[TRAIN_IDX_THUMB]) / 2;
-    int p_half = trainRestAngle[trainPairFinger]   + (trainMaxAngle[trainPairFinger]   - trainRestAngle[trainPairFinger])   / 2;
-    int t_target = (trainPhaseDirEFG == 0) ? t_half : trainRestAngle[TRAIN_IDX_THUMB];
-    int p_target = (trainPhaseDirEFG == 0) ? p_half : trainRestAngle[trainPairFinger];
-    for (int i = 0; i < 5; i++) {
-        if (i == TRAIN_IDX_THUMB)      writeFingerServo(i, t_target);
-        else if (i == trainPairFinger) writeFingerServo(i, p_target);
-        else                           writeFingerServo(i, trainRestAngle[i]);
-    }
-    if (phaseElapsed >= (unsigned long)HC_E_TAP) {
-        trainPhaseDirEFG ^= 1;
-        trainPhaseStartMs = now;
-        if (trainPhaseDirEFG == 0) {
-            trainPairFinger++;
-            if (trainPairFinger > 4) trainPairFinger = 1;
-        }
-    }
-}
-
-static void tickTrainF_Hold(unsigned long now, unsigned long phaseElapsed) {
-    int target = trainRestAngle[trainSeqFinger];
-    unsigned long stepDur = HC_F_RESTMS;
-    if (trainPhaseStepEFG == 0) {
-        float t = min(1.0f, (float)phaseElapsed / HC_F_EXT);
-        target = trainRestAngle[trainSeqFinger] + (int)((trainMaxAngle[trainSeqFinger] - trainRestAngle[trainSeqFinger]) * t);
-        stepDur = HC_F_EXT;
-    } else if (trainPhaseStepEFG == 1) {
-        target = trainMaxAngle[trainSeqFinger];
-        stepDur = HC_F_HOLDMS;
-    } else if (trainPhaseStepEFG == 2) {
-        float t = min(1.0f, (float)phaseElapsed / HC_F_RET);
-        target = trainMaxAngle[trainSeqFinger] + (int)((trainRestAngle[trainSeqFinger] - trainMaxAngle[trainSeqFinger]) * t);
-        stepDur = HC_F_RET;
-    } else {
-        target = trainRestAngle[trainSeqFinger];
-        stepDur = HC_F_RESTMS;
-    }
-    for (int i = 0; i < 5; i++) {
-        if (i == trainSeqFinger) writeFingerServo(i, target);
-        else                     writeFingerServo(i, trainRestAngle[i]);
-    }
-    if (phaseElapsed >= stepDur) {
-        trainPhaseStepEFG++;
-        trainPhaseStartMs = now;
-        if (trainPhaseStepEFG > 3) {
-            trainPhaseStepEFG = 0;
-            trainSeqFinger = (trainSeqFinger + 1) % 5;
-        }
-    }
-}
-
-static void tickTrainG_Ramp(unsigned long now, unsigned long phaseElapsed) {
-    int target = trainRestAngle[trainSeqFinger];
-    unsigned long stepDur = HC_G_UP;
-    if (trainPhaseStepEFG == 0) {
-        float t = min(1.0f, (float)phaseElapsed / HC_G_UP);
-        target = trainRestAngle[trainSeqFinger] + (int)((trainMaxAngle[trainSeqFinger] - trainRestAngle[trainSeqFinger]) * t);
-        stepDur = HC_G_UP;
-    } else if (trainPhaseStepEFG == 1) {
-        target = trainMaxAngle[trainSeqFinger];
-        stepDur = HC_G_PEAK;
-    } else {
-        float t = min(1.0f, (float)phaseElapsed / HC_G_DOWN);
-        target = trainMaxAngle[trainSeqFinger] + (int)((trainRestAngle[trainSeqFinger] - trainMaxAngle[trainSeqFinger]) * t);
-        stepDur = HC_G_DOWN;
-    }
-    for (int i = 0; i < 5; i++) {
-        if (i == trainSeqFinger) writeFingerServo(i, target);
-        else                     writeFingerServo(i, trainRestAngle[i]);
-    }
-    if (phaseElapsed >= stepDur) {
-        trainPhaseStepEFG++;
-        trainPhaseStartMs = now;
-        if (trainPhaseStepEFG > 2) {
-            trainPhaseStepEFG = 0;
-            trainSeqFinger = (trainSeqFinger + 1) % 5;
-        }
-    }
+// ===== 統一訓練更新函數 — 直接移植自 pca9685_calib_debug.ino trainUpdate() =====
+// _sw() = setServoStaggered() 等效: 檢查停用後直接呼叫 writeFingerServo (內含 2ms stagger)
+static inline void _sw(int ch, int angle) {
+    if (servoDisabled[ch]) return;
+    writeFingerServo(ch, angle);
 }
 
 void tickServoTraining() {
     if (!trainingActive) return;
     unsigned long now = millis();
-    if (now - lastTrainingStepTime < 100) return; // 10Hz
-    lastTrainingStepTime = now;
-
-    unsigned long elapsed = now - trainingStartTime;
-    if (elapsed >= trainingDurationMs) {
+    // 總時長到期檢查
+    if (now - trainingStartTime >= trainingDurationMs) {
         stopServoTraining();
         Serial.println("TRAIN_DONE");
         return;
     }
+    // 更新速率限制 (calib: TRAIN_UPDATE_MS=40ms, Mode B 用 200ms)
+    int updateInterval = (trainingModeNonBlocking == TRAIN_MODE_B_AMP) ? 200 : TRAIN_UPDATE_MS;
+    if (now - lastTrainingStepTime < (unsigned long)updateInterval) return;
+    lastTrainingStepTime = now;
+    unsigned long elapsed = now - trainPhaseStartMs;  // calib: elapsed = now - phaseStartMs
 
-    // mode 0: 原 sine 邏輯 (保留不動)
+    // ---- Mode SINE (原有 sine 波模式) ----
     if (trainingModeNonBlocking == TRAIN_MODE_SINE) {
+        unsigned long te = now - trainingStartTime;
         int amplitude = map(trainingLevelNonBlocking, 1, 5, 10, 60);
         float freq = 0.1f + 0.1f * (trainingLevelNonBlocking - 1);
-        float t = (float)elapsed / 1000.0f;
-        for (int i = 0; i < 5; i++) {
-            float phase = i * 0.2f;
-            int target = 90 + (int)(amplitude * sinf(2.0f * PI * freq * t + phase));
-            writeFingerServo(i, target);
-        }
-        return;
-    }
+        float t = (float)te / 1000.0f;
+        for (int i = 0; i < 5; i++)
+            writeFingerServo(i, 90 + (int)(amplitude * sinf(2.0f * PI * freq * t + i * 0.2f)));
 
-    // 新增 E/F/G: 用獨立 phase 計時
-    unsigned long phaseElapsed = now - trainPhaseStartMs;
-    if (trainingModeNonBlocking == TRAIN_MODE_E_OPPOSE)      tickTrainE_Opposition(now, phaseElapsed);
-    else if (trainingModeNonBlocking == TRAIN_MODE_F_HOLD)   tickTrainF_Hold(now, phaseElapsed);
-    else if (trainingModeNonBlocking == TRAIN_MODE_G_RAMP)   tickTrainG_Ramp(now, phaseElapsed);
+    // ---- Mode A: 手指敲擊 2Hz REST<->HALF ----
+    } else if (trainingModeNonBlocking == TRAIN_MODE_A_TAP) {
+        const int START_OFFSET_MS = 30;
+        for (int i = 0; i < 5; i++) {
+            long se = (long)elapsed - (long)i * START_OFFSET_MS;
+            if (se < 0) continue;
+            int half = trainRestAngle[i] + (trainMaxAngle[i] - trainRestAngle[i]) / 2;
+            _sw(i, (trainPhaseDirEFG == 0) ? half : trainRestAngle[i]);
+        }
+        if (elapsed >= (unsigned long)HC_A) {
+            trainPhaseDirEFG ^= 1;
+            if (trainPhaseDirEFG == 0) { trainRepsNonBlocking++; Serial.print("[A] reps="); Serial.println(trainRepsNonBlocking); }
+            trainPhaseStartMs = now;
+        }
+
+    // ---- Mode B: 大幅度 0.25Hz REST<->FULL (插值) ----
+    } else if (trainingModeNonBlocking == TRAIN_MODE_B_AMP) {
+        float t = min(1.0f, (float)elapsed / HC_B);
+        for (int i = 0; i < 5; i++) {
+            int from = (trainPhaseDirEFG == 0) ? trainRestAngle[i] : trainMaxAngle[i];
+            int to   = (trainPhaseDirEFG == 0) ? trainMaxAngle[i]  : trainRestAngle[i];
+            _sw(i, from + (int)((to - from) * t));
+        }
+        if (elapsed >= (unsigned long)HC_B) {
+            trainPhaseDirEFG ^= 1;
+            if (trainPhaseDirEFG == 0) { trainRepsNonBlocking++; Serial.print("[B] reps="); Serial.println(trainRepsNonBlocking); }
+            trainPhaseStartMs = now;
+        }
+
+    // ---- Mode C: 順序單指 REST->FULL->REST ----
+    } else if (trainingModeNonBlocking == TRAIN_MODE_C_SEQ) {
+        while (servoDisabled[trainSeqFinger]) trainSeqFinger = (trainSeqFinger + 1) % 5;
+        float t = min(1.0f, (float)elapsed / HC_C);
+        int from = (trainPhaseDirEFG == 0) ? trainRestAngle[trainSeqFinger] : trainMaxAngle[trainSeqFinger];
+        int to   = (trainPhaseDirEFG == 0) ? trainMaxAngle[trainSeqFinger]  : trainRestAngle[trainSeqFinger];
+        for (int i = 0; i < 5; i++) {
+            if (i == trainSeqFinger) _sw(i, from + (int)((to - from) * t));
+            else                     _sw(i, trainRestAngle[i]);
+        }
+        if (elapsed >= (unsigned long)HC_C) {
+            trainPhaseDirEFG ^= 1;
+            trainPhaseStartMs = now;
+            if (trainPhaseDirEFG == 0) {
+                Serial.print("[C] "); Serial.print(TRAIN_FINGER_NAMES[trainSeqFinger]); Serial.println(" done");
+                do { trainSeqFinger = (trainSeqFinger + 1) % 5; } while (servoDisabled[trainSeqFinger]);
+                if (trainSeqFinger == 0) { trainRepsNonBlocking++; Serial.print("[C] reps="); Serial.println(trainRepsNonBlocking); }
+            }
+        }
+
+    // ---- Mode D: 握拳/放鬆 0.5Hz REST<->FULL ----
+    } else if (trainingModeNonBlocking == TRAIN_MODE_D_GRIP) {
+        for (int i = 0; i < 5; i++)
+            _sw(i, (trainPhaseDirEFG == 0) ? trainMaxAngle[i] : trainRestAngle[i]);
+        if (elapsed >= (unsigned long)HC_D) {
+            trainPhaseDirEFG ^= 1;
+            if (trainPhaseDirEFG == 0) { trainRepsNonBlocking++; Serial.print("[D] reps="); Serial.println(trainRepsNonBlocking); }
+            trainPhaseStartMs = now;
+        }
+
+    // ---- Mode E: 拇指對指敲擊 ----
+    } else if (trainingModeNonBlocking == TRAIN_MODE_E_OPPOSE) {
+        while (servoDisabled[trainPairFinger] && trainPairFinger != TRAIN_IDX_THUMB)
+            trainPairFinger = (trainPairFinger % 4) + 1;
+        int t_half = trainRestAngle[TRAIN_IDX_THUMB] + (trainMaxAngle[TRAIN_IDX_THUMB] - trainRestAngle[TRAIN_IDX_THUMB]) / 2;
+        int p_half = trainRestAngle[trainPairFinger] + (trainMaxAngle[trainPairFinger] - trainRestAngle[trainPairFinger]) / 2;
+        int t_tgt  = servoDisabled[TRAIN_IDX_THUMB] ? trainRestAngle[TRAIN_IDX_THUMB] : ((trainPhaseDirEFG == 0) ? t_half : trainRestAngle[TRAIN_IDX_THUMB]);
+        int p_tgt  = (trainPhaseDirEFG == 0) ? p_half : trainRestAngle[trainPairFinger];
+        for (int i = 0; i < 5; i++) {
+            if      (i == TRAIN_IDX_THUMB)  _sw(i, t_tgt);
+            else if (i == trainPairFinger)  _sw(i, p_tgt);
+            else                            _sw(i, trainRestAngle[i]);
+        }
+        if (elapsed >= (unsigned long)HC_E_TAP) {
+            trainPhaseDirEFG ^= 1;
+            trainPhaseStartMs = now;
+            if (trainPhaseDirEFG == 0) {
+                Serial.print("[E] Thumb+"); Serial.print(TRAIN_FINGER_NAMES[trainPairFinger]); Serial.println(" done");
+                if (++trainPairFinger > 4) { trainPairFinger = 1; trainRepsNonBlocking++; Serial.print("[E] reps="); Serial.println(trainRepsNonBlocking); }
+            }
+        }
+
+    // ---- Mode F: 持續伸展保持 ----
+    } else if (trainingModeNonBlocking == TRAIN_MODE_F_HOLD) {
+        while (servoDisabled[trainSeqFinger]) trainSeqFinger = (trainSeqFinger + 1) % 5;
+        int target = trainRestAngle[trainSeqFinger];
+        unsigned long stepDur = HC_F_RESTMS;
+        if      (trainPhaseStepEFG == 0) { float t = min(1.0f,(float)elapsed/HC_F_EXT);  target = trainRestAngle[trainSeqFinger]+(int)((trainMaxAngle[trainSeqFinger]-trainRestAngle[trainSeqFinger])*t); stepDur=HC_F_EXT; }
+        else if (trainPhaseStepEFG == 1) { target = trainMaxAngle[trainSeqFinger]; stepDur=HC_F_HOLDMS; }
+        else if (trainPhaseStepEFG == 2) { float t = min(1.0f,(float)elapsed/HC_F_RET);  target = trainMaxAngle[trainSeqFinger]+(int)((trainRestAngle[trainSeqFinger]-trainMaxAngle[trainSeqFinger])*t); stepDur=HC_F_RET; }
+        for (int i = 0; i < 5; i++) {
+            if (i == trainSeqFinger) _sw(i, target);
+            else                     _sw(i, trainRestAngle[i]);
+        }
+        if (elapsed >= stepDur) {
+            trainPhaseStartMs = now;
+            if (++trainPhaseStepEFG > 3) {
+                trainPhaseStepEFG = 0;
+                Serial.print("[F] "); Serial.print(TRAIN_FINGER_NAMES[trainSeqFinger]); Serial.println(" cycle done");
+                do { trainSeqFinger = (trainSeqFinger + 1) % 5; } while (servoDisabled[trainSeqFinger]);
+                if (trainSeqFinger == 0) { trainRepsNonBlocking++; Serial.print("[F] reps="); Serial.println(trainRepsNonBlocking); }
+            }
+        }
+
+    // ---- Mode G: 漸進阻力斜坡 ----
+    } else if (trainingModeNonBlocking == TRAIN_MODE_G_RAMP) {
+        while (servoDisabled[trainSeqFinger]) trainSeqFinger = (trainSeqFinger + 1) % 5;
+        int target = trainRestAngle[trainSeqFinger];
+        unsigned long stepDur = HC_G_UP;
+        if      (trainPhaseStepEFG == 0) { float t = min(1.0f,(float)elapsed/HC_G_UP);   target = trainRestAngle[trainSeqFinger]+(int)((trainMaxAngle[trainSeqFinger]-trainRestAngle[trainSeqFinger])*t); stepDur=HC_G_UP; }
+        else if (trainPhaseStepEFG == 1) { target = trainMaxAngle[trainSeqFinger]; stepDur=HC_G_PEAK; }
+        else                             { float t = min(1.0f,(float)elapsed/HC_G_DOWN); target = trainMaxAngle[trainSeqFinger]+(int)((trainRestAngle[trainSeqFinger]-trainMaxAngle[trainSeqFinger])*t); stepDur=HC_G_DOWN; }
+        for (int i = 0; i < 5; i++) {
+            if (i == trainSeqFinger) _sw(i, target);
+            else                     _sw(i, trainRestAngle[i]);
+        }
+        if (elapsed >= stepDur) {
+            trainPhaseStartMs = now;
+            if (++trainPhaseStepEFG > 2) {
+                trainPhaseStepEFG = 0;
+                Serial.print("[G] "); Serial.print(TRAIN_FINGER_NAMES[trainSeqFinger]); Serial.println(" cycle done");
+                do { trainSeqFinger = (trainSeqFinger + 1) % 5; } while (servoDisabled[trainSeqFinger]);
+                if (trainSeqFinger == 0) { trainRepsNonBlocking++; Serial.print("[G] reps="); Serial.println(trainRepsNonBlocking); }
+            }
+        }
+    }
 }
 
 // 等級 → 推薦訓練模式 (基於文獻):
@@ -1614,6 +1800,8 @@ void handleBLECommand(String command) {
         startCalibration();
     } else if (command == "STATUS") {
         printSystemStatus();
+    } else if (command == "HELP") {
+        printCommandHelp();
     } else if (command == "ANALYZE" || command == "AUTO") {
         startSingleAnalysis();
     } else if (command.startsWith("SERVO_SET")) {
@@ -1689,6 +1877,57 @@ void handleBLECommand(String command) {
     } else if (command == "TRAIN_STOP") {
         stopServoTraining();
         sendMessage("OK,TRAIN_STOP");
+    } else if (command == "INIT") {
+        initServosToRest();
+        sendMessage("OK,INIT");
+    } else if (command.startsWith("SERVO_DISABLE")) {
+        int c = command.indexOf(',');
+        if (c > 0) { int id = command.substring(c + 1).toInt(); if (id >= 0 && id < 5) { servoDisabled[id] = true; sendMessage("OK,SERVO_DISABLE," + String(id)); } else sendMessage("ERR,bad id"); }
+        else sendMessage("ERR,usage SERVO_DISABLE,<id>");
+    } else if (command.startsWith("SERVO_ENABLE")) {
+        int c = command.indexOf(',');
+        if (c > 0) { int id = command.substring(c + 1).toInt(); if (id >= 0 && id < 5) { servoDisabled[id] = false; sendMessage("OK,SERVO_ENABLE," + String(id)); } else sendMessage("ERR,bad id"); }
+        else sendMessage("ERR,usage SERVO_ENABLE,<id>");
+    } else if (command.startsWith("TRAIN_A")) {
+        unsigned long dur = 30000;
+        int comma = command.indexOf(',');
+        if (comma > 0) dur = (unsigned long) command.substring(comma + 1).toInt();
+        startServoTraining(dur, TRAIN_MODE_A_TAP, trainingLevelNonBlocking);
+        sendMessage("OK,TRAIN_A");
+    } else if (command.startsWith("TRAIN_B")) {
+        unsigned long dur = 30000;
+        int comma = command.indexOf(',');
+        if (comma > 0) dur = (unsigned long) command.substring(comma + 1).toInt();
+        startServoTraining(dur, TRAIN_MODE_B_AMP, trainingLevelNonBlocking);
+        sendMessage("OK,TRAIN_B");
+    } else if (command.startsWith("TRAIN_C")) {
+        unsigned long dur = 60000;
+        int comma = command.indexOf(',');
+        if (comma > 0) dur = (unsigned long) command.substring(comma + 1).toInt();
+        startServoTraining(dur, TRAIN_MODE_C_SEQ, trainingLevelNonBlocking);
+        sendMessage("OK,TRAIN_C");
+    } else if (command.startsWith("TRAIN_D")) {
+        unsigned long dur = 30000;
+        int comma = command.indexOf(',');
+        if (comma > 0) dur = (unsigned long) command.substring(comma + 1).toInt();
+        startServoTraining(dur, TRAIN_MODE_D_GRIP, trainingLevelNonBlocking);
+        sendMessage("OK,TRAIN_D");
+    } else if (command.startsWith("SETREST")) {
+        int c1 = command.indexOf(','), c2 = command.indexOf(',', c1 + 1);
+        if (c1 > 0 && c2 > c1) {
+            int id = command.substring(c1 + 1, c2).toInt();
+            int ang = constrain(command.substring(c2 + 1).toInt(), 0, 180);
+            if (id >= 0 && id < 5) { trainRestAngle[id] = ang; sendMessage("OK,SETREST," + String(id) + "," + String(ang)); }
+            else sendMessage("ERR,SETREST,bad id");
+        } else sendMessage("ERR,SETREST,usage SETREST,<id>,<angle>");
+    } else if (command.startsWith("SETMAX")) {
+        int c1 = command.indexOf(','), c2 = command.indexOf(',', c1 + 1);
+        if (c1 > 0 && c2 > c1) {
+            int id = command.substring(c1 + 1, c2).toInt();
+            int ang = constrain(command.substring(c2 + 1).toInt(), 0, 180);
+            if (id >= 0 && id < 5) { trainMaxAngle[id] = ang; sendMessage("OK,SETMAX," + String(id) + "," + String(ang)); }
+            else sendMessage("ERR,SETMAX,bad id");
+        } else sendMessage("ERR,SETMAX,usage SETMAX,<id>,<angle>");
     } else if (command.startsWith("SERVO")) {
         // legacy fallback: SERVO,90
         int angle = command.substring(5).toInt();
