@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Activity, Gamepad2, Pause, Play, RotateCcw, Target, Trophy, Zap } from 'lucide-react';
+import { Activity, CheckCircle2, Gamepad2, Pause, Play, RotateCcw, Target, Trophy, Zap } from 'lucide-react';
 import AppTopBar from '@/components/ui/AppTopBar';
 import { useGlobalConnection } from '@/hooks/useGlobalConnection';
 import { type SensorData } from '@/utils/bluetoothManager';
+import { useSessionFinish } from '@/hooks/useSessionFinish';
+import SessionCompleteModal from '@/components/rewards/SessionCompleteModal';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 type FingerMode = 'average' | 'thumb' | 'index' | 'middle' | 'ring' | 'pinky';
@@ -59,6 +61,8 @@ export default function RehabGamePage() {
       setDemoMode(false);
     },
   });
+
+  const { summary, open, finish, close, reset: resetSummary } = useSessionFinish();
 
   const settings = difficultySettings[difficulty];
 
@@ -189,6 +193,43 @@ export default function RehabGamePage() {
     }
   };
 
+  const finishSession = async () => {
+    setIsPlaying(false);
+    if (isConnected) {
+      try {
+        await sendCommand('STOP');
+      } catch {}
+    }
+    const result = finish({
+      gameType: 'sine-wave',
+      difficulty,
+      fingerMode,
+      durationMs: elapsedMs,
+      reps,
+      score,
+      accuracy,
+      bestStreak,
+    });
+    // If session was too short to count, just leave the page state alone so the
+    // patient can keep practising — the toast/modal won't fire.
+    if (!result) {
+      // Optional: a quick visual hint could be added; for now, no-op.
+    }
+  };
+
+  const handleModalClose = () => {
+    close();
+    resetGame();
+    resetSummary();
+  };
+
+  const handlePlayAgain = () => {
+    close();
+    resetGame();
+    resetSummary();
+    setTimeout(() => { void startSession(); }, 50);
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-white antialiased flex flex-col">
       <AppTopBar showBack />
@@ -283,6 +324,18 @@ export default function RehabGamePage() {
                   <RotateCcw size={18} /> Reset
                 </button>
               </div>
+              <button
+                onClick={finishSession}
+                disabled={elapsedMs < 5000 || reps < 1}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-emerald-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+              >
+                <CheckCircle2 size={18} /> Finish &amp; Save
+              </button>
+              <p className="mt-2 text-center text-[11px] text-slate-400">
+                {elapsedMs < 5000 || reps < 1
+                  ? 'Play for a few seconds to enable saving.'
+                  : 'Saves your reps, points, streak and quest progress.'}
+              </p>
 
               <div className="mt-4 space-y-3">
                 <label className="block text-sm leading-6 tracking-normal text-slate-300">
@@ -337,6 +390,12 @@ export default function RehabGamePage() {
         </section>
       </main>
 
+      <SessionCompleteModal
+        open={open}
+        summary={summary}
+        onClose={handleModalClose}
+        onPlayAgain={handlePlayAgain}
+      />
     </div>
   );
 }

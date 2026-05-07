@@ -2,9 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Activity, Calendar, TrendingDown, TrendingUp } from 'lucide-react';
+import { Activity, Calendar, CheckCircle2, Flame, Star, TrendingDown, TrendingUp, Trophy } from 'lucide-react';
 import AppTopBar from '@/components/ui/AppTopBar';
 import { analysisRecordService } from '@/services/analysisRecordService';
+import { rehabSessionService, toLocalYMD } from '@/services/rehabSessionService';
+import { rewardsService, type LevelInfo, type RewardsState } from '@/services/rewardsService';
+import { dailyQuestsService, type DailyQuestSnapshot, type QuestDefinition, type QuestProgress } from '@/services/dailyQuestsService';
 
 interface UserProfile {
   name: string;
@@ -21,28 +24,14 @@ function getGreeting(): string {
   return 'Good Evening';
 }
 
-function getStreak(): number {
-  try {
-    const raw = localStorage.getItem('parkinson_analysis_records');
-    if (!raw) return 0;
-    const records: Array<{ timestamp: string }> = JSON.parse(raw);
-    const days = new Set(records.map((r) => r.timestamp?.split('T')[0]).filter(Boolean));
-    return days.size;
-  } catch {
-    return 0;
-  }
+function getLastRehabSession(): string | null {
+  const recent = rehabSessionService.getRecent(1);
+  return recent[0]?.timestamp ?? null;
 }
 
-function getLastSession(): string | null {
-  try {
-    const raw = localStorage.getItem('parkinson_analysis_records');
-    if (!raw) return null;
-    const records: Array<{ timestamp: string }> = JSON.parse(raw);
-    if (records.length === 0) return null;
-    return records[records.length - 1].timestamp;
-  } catch {
-    return null;
-  }
+function trainedToday(): boolean {
+  const today = toLocalYMD(new Date());
+  return rehabSessionService.getSessionsForDay(today).length > 0;
 }
 
 function formatRelativeTime(timestamp: string): string {
@@ -62,8 +51,11 @@ function severityToMdsUpdrs(overallSeverity: number): number {
 export default function HomePage() {
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [streak, setStreak] = useState(0);
-  const [lastSession, setLastSession] = useState<string | null>(null);
+  const [rewards, setRewards] = useState<RewardsState | null>(null);
+  const [levelInfo, setLevelInfo] = useState<LevelInfo | null>(null);
+  const [questSnapshot, setQuestSnapshot] = useState<DailyQuestSnapshot | null>(null);
+  const [didTrainToday, setDidTrainToday] = useState(false);
+  const [lastRehabAt, setLastRehabAt] = useState<string | null>(null);
   const [stats, setStats] = useState({ total: 0, avgScore: 0, trend: 'stable' as 'improving' | 'declining' | 'stable' });
   const [recentSessions, setRecentSessions] = useState<Array<{ id: string; timestamp: string; score: number; level: number }>>([]);
 
@@ -80,8 +72,11 @@ export default function HomePage() {
     } else {
       setHasProfile(false);
     }
-    setStreak(getStreak());
-    setLastSession(getLastSession());
+    setRewards(rewardsService.getState());
+    setLevelInfo(rewardsService.getLevelInfo());
+    setQuestSnapshot(dailyQuestsService.getToday({ recompute: true }));
+    setDidTrainToday(trainedToday());
+    setLastRehabAt(getLastRehabSession());
 
     // Load stats and recent sessions
     const records = analysisRecordService.getAllRecords();
@@ -162,36 +157,36 @@ export default function HomePage() {
 
         {hasProfile ? (
           <>
-            {/* Quick stats */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              <StatCard
-                label="Total Sessions"
-                value={stats.total.toString()}
-                icon={<Calendar size={16} />}
+
+            {/* Streak + points + level */}
+            {rewards && levelInfo && (
+              <RewardsSummary
+                rewards={rewards}
+                levelInfo={levelInfo}
+                didTrainToday={didTrainToday}
               />
-              <StatCard
-                label="Avg MDS-UPDRS"
-                value={stats.avgScore > 0 ? stats.avgScore.toString() : '—'}
-                icon={<Activity size={16} />}
-              />
-              <StatCard
-                label="Trend"
-                value={
-                  stats.trend === 'improving' ? 'Improving' :
-                  stats.trend === 'declining' ? 'Worsening' : 'Stable'
-                }
-                icon={
-                  stats.trend === 'improving' ? <TrendingDown size={16} className="text-green-500" /> :
-                  stats.trend === 'declining' ? <TrendingUp size={16} className="text-red-500" /> :
-                  <Activity size={16} className="text-gray-400" />
-                }
-                valueColor={
-                  stats.trend === 'improving' ? 'text-green-600 dark:text-green-400' :
-                  stats.trend === 'declining' ? 'text-red-600 dark:text-red-400' :
-                  'text-gray-600 dark:text-gray-400'
-                }
-              />
-            </div>
+            )}
+
+            {/* Comeback banner: streak reset after a break */}
+            {rewards && rewards.lastActiveDay !== null && rewards.currentStreak === 0 && (
+              <ComebackBanner />
+            )}
+
+            {/* Foot-in-the-door — always-visible 30-second commit */}
+            {!didTrainToday && (
+              <Link
+                href="/rehab"
+                className="mb-6 block w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 p-4 text-center text-white shadow-md hover:shadow-lg active:scale-[0.99] transition"
+              >
+                <div className="text-xs uppercase tracking-wider opacity-90">Just feel like 30 seconds?</div>
+                <div className="mt-0.5 text-lg font-bold">Tap here to start a quick session →</div>
+              </Link>
+            )}
+
+            {/* Today's quests */}
+            {questSnapshot && (
+              <DailyQuestsCard snapshot={questSnapshot} didTrainToday={didTrainToday} />
+            )}
 
             {/* Main action cards */}
             <div className="space-y-4">
@@ -214,42 +209,43 @@ export default function HomePage() {
               <DashCard
                 icon="🏋️"
                 title="Rehab"
-                description={streak > 0 ? `🔥 ${streak}-day streak` : 'Start your rehab journey.'}
-                cta="Start Session"
-                href="/rehab-game"
+                description={
+                  rewards && rewards.currentStreak > 0
+                    ? `🔥 ${rewards.currentStreak}-day streak — ${didTrainToday ? 'great job today!' : 'don\u2019t break it!'}`
+                    : 'Start your rehab journey.'
+                }
+                cta={didTrainToday ? 'Train again' : 'Start Session'}
+                href="/rehab"
                 accentClass="from-purple-500 to-purple-600"
-                extra={lastSession ? `Last: ${formatRelativeTime(lastSession)}` : undefined}
+                extra={lastRehabAt ? `Last: ${formatRelativeTime(lastRehabAt)}` : undefined}
+              />
+              <DashCard
+                icon="🌱"
+                title="Garden"
+                description="Grow plants with every session you complete."
+                cta="Tend Garden"
+                href="/garden"
+                accentClass="from-emerald-500 to-green-600"
+              />
+              <DashCard
+                icon="🏆"
+                title="Rewards"
+                description="Achievements, medals and your card album."
+                cta="View Rewards"
+                href="/rewards"
+                accentClass="from-amber-500 to-orange-600"
+              />
+              <DashCard
+                icon="📄"
+                title="Progress Card & Data Manage"
+                description="Share your progress with family or your doctor."
+                cta="View Report"
+                href="/summary-card"
+                accentClass="from-rose-500 to-pink-600"
               />
             </div>
 
-            {/* Recent activity */}
-            {recentSessions.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Recent Sessions</h2>
-                <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl divide-y divide-gray-100 dark:divide-neutral-800">
-                  {recentSessions.map((session) => (
-                    <div key={session.id} className="px-5 py-3 flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          Analysis #{session.id.slice(0, 8)}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                          {formatRelativeTime(session.timestamp)}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                          MDS-UPDRS: {session.score}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          Level {session.level}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            
           </>
         ) : (
           <div className="relative mb-40">
@@ -355,5 +351,136 @@ function DashCard({
         </span>
       </div>
     </Link>
+  );
+}
+
+function RewardsSummary({
+  rewards,
+  levelInfo,
+  didTrainToday,
+}: {
+  rewards: RewardsState;
+  levelInfo: LevelInfo;
+  didTrainToday: boolean;
+}) {
+  const flameTone = rewards.currentStreak > 0
+    ? 'from-orange-400 to-red-500'
+    : 'from-gray-300 to-gray-400 dark:from-neutral-700 dark:to-neutral-600';
+  return (
+    <div className="mb-6 grid grid-cols-3 gap-3">
+      {/* Streak */}
+      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl p-3 flex flex-col items-center justify-center text-center">
+        <div className={`mb-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br ${flameTone} text-white`}>
+          <Flame size={18} />
+        </div>
+        <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none">
+          {rewards.currentStreak}
+        </div>
+        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+          {rewards.currentStreak === 1 ? 'day streak' : 'day streak'}
+        </div>
+        {!didTrainToday && rewards.currentStreak > 0 && (
+          <div className="mt-1 text-[10px] font-semibold text-orange-500">Don't break it!</div>
+        )}
+      </div>
+
+      {/* Points */}
+      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl p-3 flex flex-col items-center justify-center text-center">
+        <div className="mb-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 text-white">
+          <Star size={18} />
+        </div>
+        <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none">
+          {rewards.totalPoints.toLocaleString()}
+        </div>
+        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">total points</div>
+      </div>
+
+      {/* Level */}
+      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl p-3 flex flex-col items-center justify-center text-center">
+        <div className="mb-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-white">
+          <Trophy size={18} />
+        </div>
+        <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none">
+          Lv {levelInfo.level}
+        </div>
+        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">{levelInfo.tier}</div>
+        <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-neutral-800">
+          <div
+            className="h-full bg-gradient-to-r from-purple-500 to-indigo-500"
+            style={{ width: `${Math.round(levelInfo.progress01 * 100)}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DailyQuestsCard({ snapshot, didTrainToday }: { snapshot: DailyQuestSnapshot; didTrainToday: boolean }) {
+  const completedCount = snapshot.quests.filter(q => snapshot.progress[q.id]?.completed).length;
+  const total = snapshot.quests.length;
+  return (
+    <div className="mb-6 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white">Today's Quests</h3>
+        <span className="text-xs text-gray-500 dark:text-gray-400">{completedCount}/{total} done</span>
+      </div>
+      <ul className="space-y-2">
+        {snapshot.quests.map((q) => {
+          const prog = snapshot.progress[q.id] as QuestProgress;
+          return <QuestRow key={q.id} quest={q} progress={prog} />;
+        })}
+      </ul>
+      {!didTrainToday && (
+        <Link
+          href="/rehab"
+          className="mt-4 block w-full rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:opacity-90 active:scale-95 transition"
+        >
+          Start training to make progress →
+        </Link>
+      )}
+    </div>
+  );
+}
+
+function ComebackBanner() {
+  return (
+    <div className="mb-6 rounded-2xl bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/30 dark:to-blue-900/30 border border-cyan-200 dark:border-cyan-700/40 p-4 flex items-center gap-3">
+      <div className="text-3xl">🌱</div>
+      <div className="flex-1">
+        <div className="text-sm font-semibold text-cyan-800 dark:text-cyan-100">
+          Welcome back!
+        </div>
+        <div className="text-xs text-cyan-700/90 dark:text-cyan-200/90">
+          Your last streak is on pause — finish any session today to start a new one. No penalties, just keep going.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuestRow({ quest, progress }: { quest: QuestDefinition; progress: QuestProgress }) {
+  const target = Math.max(1, quest.target);
+  const current = Math.min(target, progress?.current ?? 0);
+  const ratio = current / target;
+  const completed = progress?.completed === true;
+  return (
+    <li className={`rounded-xl border p-3 ${completed ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-700/40' : 'bg-gray-50 border-gray-200 dark:bg-neutral-800 dark:border-neutral-700'}`}>
+      <div className="flex items-center gap-2">
+        <div className={`flex h-6 w-6 items-center justify-center rounded-full flex-shrink-0 ${completed ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-neutral-700 text-gray-500'}`}>
+          {completed ? <CheckCircle2 size={14} /> : <span className="text-[10px] font-bold">{Math.round(ratio * 100)}%</span>}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium text-gray-900 dark:text-white">{quest.title}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{quest.description}</div>
+        </div>
+        <div className="text-xs font-semibold text-amber-500 flex-shrink-0">+{quest.pointsReward}</div>
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-neutral-700">
+        <div
+          className={`h-full ${completed ? 'bg-emerald-500' : 'bg-gradient-to-r from-purple-500 to-indigo-500'}`}
+          style={{ width: `${Math.round(ratio * 100)}%` }}
+        />
+      </div>
+    </li>
   );
 }

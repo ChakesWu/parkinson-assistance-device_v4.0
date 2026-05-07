@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AppShell from "@/components/ui/AppShell";
+import AppFooter from "@/components/ui/AppFooter";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -23,8 +24,11 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
-      <body className={`${inter.variable} antialiased min-h-screen`}>
-        <AppShell>{children}</AppShell>
+      <body className={`${inter.variable} antialiased min-h-screen flex flex-col`}>
+        <AppShell>
+          <div className="flex-1 flex flex-col">{children}</div>
+          <AppFooter />
+        </AppShell>
       </body>
     </html>
   );
