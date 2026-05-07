@@ -26,6 +26,8 @@ export class GlobalConnectionManager {
   private serialPort: SerialPort | null = null;
   private serialReader: ReadableStreamDefaultReader | null = null;
   private serialWriter: WritableStreamDefaultWriter | null = null;
+  private serialReadableClosed: Promise<void> | null = null;
+  private serialWritableClosed: Promise<void> | null = null;
   private broadcastChannel: BroadcastChannel;
   private connectionState: ConnectionState;
   private callbacks: GlobalConnectionManagerOptions = {};
@@ -216,12 +218,12 @@ export class GlobalConnectionManager {
 
       // 设置读取器
       const textDecoder = new TextDecoderStream();
-      this.serialPort.readable.pipeTo(textDecoder.writable);
+      this.serialReadableClosed = this.serialPort.readable.pipeTo(textDecoder.writable);
       this.serialReader = textDecoder.readable.getReader();
 
       // 设置写入器
       const textEncoder = new TextEncoderStream();
-      textEncoder.readable.pipeTo(this.serialPort.writable);
+      this.serialWritableClosed = textEncoder.readable.pipeTo(this.serialPort.writable);
       this.serialWriter = textEncoder.writable.getWriter();
 
       // 开始读取数据
@@ -371,15 +373,23 @@ export class GlobalConnectionManager {
 
       // 断开串口
       if (this.serialReader) {
-        await this.serialReader.cancel();
+        try { await this.serialReader.cancel(); } catch {}
         this.serialReader = null;
       }
+      if (this.serialReadableClosed) {
+        try { await this.serialReadableClosed; } catch {}
+        this.serialReadableClosed = null;
+      }
       if (this.serialWriter) {
-        await this.serialWriter.close();
+        try { await this.serialWriter.close(); } catch {}
         this.serialWriter = null;
       }
+      if (this.serialWritableClosed) {
+        try { await this.serialWritableClosed; } catch {}
+        this.serialWritableClosed = null;
+      }
       if (this.serialPort) {
-        await this.serialPort.close();
+        try { await this.serialPort.close(); } catch {}
         this.serialPort = null;
       }
 
