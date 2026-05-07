@@ -15,7 +15,7 @@ export default function SimpleLightweightIndicator({
     <div className={`flex items-center space-x-2 ${className}`}>
       <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
       <span className="text-sm text-gray-600 dark:text-gray-400">
-        {isConnected ? `已连接 (${connectionType})` : '未连接'}
+        {isConnected ? `Connected (${connectionType})` : 'Not Connected'}
       </span>
     </div>
   );

@@ -30,15 +30,15 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
   const [error, setError] = useState<string | null>(null);
   const readBufferRef = useRef<string>('');
 
-  // 初始化相关状态
+  // Initialization-related state
   const [isInitializing, setIsInitializing] = useState(false);
   const [initializationComplete, setInitializationComplete] = useState(false);
   const [fingerBaselines, setFingerBaselines] = useState<number[]>([0, 0, 0, 0, 0]);
 
-  // 電位器方向設置
+  // Potentiometer direction setting
   const [potentiometerReversed, setPotentiometerReversed] = useState(false);
 
-  // AI分析结果状态
+  // AI analysis result state
   const [aiAnalysisData, setAiAnalysisData] = useState({
     analysisCount: 0,
     parkinsonLevel: 0,
@@ -49,7 +49,7 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
     isAnalyzing: false
   });
 
-  // 舵机设置状态（拇指到小指）
+  // Servo settings state (thumb to pinky)
   const [servoInitialAngles, setServoInitialAngles] = useState<number[]>([90, 90, 90, 90, 90]);
   const [servoMinAngles, setServoMinAngles] = useState<number[]>([10, 10, 10, 10, 10]);
   const [servoMaxAngles, setServoMaxAngles] = useState<number[]>([170, 170, 170, 170, 170]);
@@ -61,7 +61,7 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
     return next;
   };
 
-  // 檢查瀏覽器是否支持Web Serial API
+  // Check if the browser supports the Web Serial API
   const isWebSerialSupported = () => {
     return typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'serial' in navigator;
   };
@@ -72,71 +72,71 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
       const payload = command.endsWith('\n') ? command : `${command}\n`;
       await writer.write(payload);
     } catch (e) {
-      console.error('串口寫入失敗:', e);
-      setError(`串口寫入失敗: ${(e as Error).message}`);
+      console.error('Serial write failed:', e);
+      setError(`Serial write failed: ${(e as Error).message}`);
     }
   };
 
-  // 連接Arduino設備
+  // Connect to Arduino device
   const connectToArduino = async () => {
     if (!isWebSerialSupported()) {
-      setError('您的瀏覽器不支持Web Serial API，請使用Chrome或Edge瀏覽器');
+      setError('Your browser does not support the Web Serial API. Please use Chrome or Edge.');
       return;
     }
 
     try {
-      // 請求用戶選擇串口設備
+      // Request the user to select a serial port device
       const selectedPort = await navigator.serial.requestPort();
-      // 與 Arduino 韌體 (Serial.begin(115200)) 一致
+      // Matches the Arduino firmware (Serial.begin(115200))
       await selectedPort.open({ baudRate: 115200 });
       
       setPort(selectedPort);
       setIsConnected(true);
       setError(null);
       
-      // 設置讀取器
+      // Set up the reader
       const textDecoder = new TextDecoderStream();
       const readableStreamClosed = selectedPort.readable.pipeTo(textDecoder.writable);
       const newReader = textDecoder.readable.getReader();
       setReader(newReader);
       
-      // 設置寫入器
+      // Set up the writer
       const textEncoder = new TextEncoderStream();
       writableClosedRef.current = textEncoder.readable.pipeTo(selectedPort.writable);
       const newWriter = textEncoder.writable.getWriter();
       setWriter(newWriter);
 
-      // 開始讀取數據
+      // Start reading data
       readData(newReader);
 
-      // 重置初始化状态
+      // Reset initialization state
       setIsInitializing(false);
       setInitializationComplete(false);
       setFingerBaselines([0, 0, 0, 0, 0]);
       setIsConnected(true);
 
-      // 連接成功後等待設備穩定
+      // Wait for the device to stabilize after a successful connection
       await new Promise(r => setTimeout(r, 1000));
-      console.log('🔄 串口設備已連接，開始重新初始化...');
-      console.log('📋 請確保手指完全伸直，準備進行基線校準');
+      console.log('🔄 Serial device connected, starting re-initialization...');
+      console.log('📋 Please ensure fingers are fully extended, preparing for baseline calibration');
 
-      // 查詢狀態
+      // Query status
       await newWriter.write('STATUS\n');
 
-      // 等待一下再開始初始化，確保設備響應
+      // Wait a moment before initialization to ensure the device responds
       await new Promise(r => setTimeout(r, 500));
 
-      // Arduino會自動處理校準，前端只需要調整方向
-      console.log('🚀 串口連接：Arduino將自動處理校準');
+      // Arduino handles calibration automatically; the frontend only needs to adjust direction
+      console.log('🚀 Serial connection: Arduino will handle calibration automatically');
       
     } catch (err) {
-      console.error('連接錯誤:', err);
-      setError(`連接失敗: ${(err as Error).message}`);
+      console.error('Connection error:', err);
+      setError(`Connection failed: ${(err as Error).message}`);
       setIsConnected(false);
     }
   };
 
-  // 斷開連接
+  // Disconnect
   const disconnectArduino = async () => {
     if (reader) {
       await reader.cancel();
@@ -165,7 +165,7 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
     setReader(null);
   };
 
-  // 讀取串口數據
+  // Read serial port data
   const readData = async (currentReader: ReadableStreamDefaultReader) => {
     try {
       while (true) {
@@ -176,10 +176,10 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
         }
         
         if (value) {
-          // 累積到行緩衝，確保跨 chunk 的資料能完整解析
+          // Accumulate into the line buffer to ensure data spanning multiple chunks is fully parsed
           readBufferRef.current += value as string;
           const parts = readBufferRef.current.split('\n');
-          // 最後一段可能是不完整行，暫存回緩衝
+          // The last segment may be an incomplete line; hold it back in the buffer
           readBufferRef.current = parts.pop() ?? '';
           for (const line of parts) {
             parseSensorData(line);
@@ -187,13 +187,13 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
         }
       }
     } catch (err) {
-      console.error('讀取錯誤:', err);
-      setError(`數據讀取錯誤: ${(err as Error).message}`);
+      console.error('Read error:', err);
+      setError(`Data read error: ${(err as Error).message}`);
       disconnectArduino();
     }
   };
 
-  // 解析傳感器數據
+  // Parse sensor data
   const parseSensorData = (dataString: string) => {
     try {
       const lines = dataString.split('\n');
@@ -202,37 +202,37 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
         const trimmedLine = line.trim();
         if (!trimmedLine) continue;
 
-        // 添加調試信息
-        console.log('📥 收到串口數據:', trimmedLine);
+        // Add debug info
+        console.log('📥 Serial data received:', trimmedLine);
 
-        // 處理初始化完成信號
+        // Handle initialization complete signal
         if (trimmedLine === 'INIT_COMPLETE') {
-          console.log('✅ Arduino設備初始化完成！');
-          // Arduino初始化完成後，開始網頁端初始化
+          console.log('✅ Arduino device initialization complete!');
+          // After Arduino initialization is complete, start web-side initialization
           startWebInitialization();
           return;
         }
 
-        // 解析 DATA 格式: DATA,thumb,index,middle,ring,pinky,emg,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,mag_x,mag_y,mag_z
-        // 左手邏輯：finger1=拇指, finger2=食指, finger3=中指, finger4=無名指, finger5=小指
+        // Parse DATA format: DATA,thumb,index,middle,ring,pinky,emg,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,mag_x,mag_y,mag_z
+        // Left hand logic: finger1=thumb, finger2=index, finger3=middle, finger4=ring, finger5=pinky
         if (trimmedLine.startsWith('DATA,')) {
           const parts = trimmedLine.split(',');
-          console.log('📊 解析DATA，parts長度:', parts.length, 'parts:', parts);
+          console.log('📊 Parsing DATA, parts length:', parts.length, 'parts:', parts);
 
-          if (parts.length >= 16) { // DATA + 15 values (含 accel/gyro/mag)
-            // 解析原始手指數據 (索引 1-5) - 左手順序：拇指到小指
+          if (parts.length >= 16) { // DATA + 15 values (including accel/gyro/mag)
+            // Parse raw finger data (indices 1-5) - left hand order: thumb to pinky
             const rawFingers = [
-              parseInt(parts[1]),  // 拇指原始值
-              parseInt(parts[2]),  // 食指原始值
-              parseInt(parts[3]),  // 中指原始值
-              parseInt(parts[4]),  // 無名指原始值
-              parseInt(parts[5])   // 小指原始值
+              parseInt(parts[1]),  // thumb raw value
+              parseInt(parts[2]),  // index raw value
+              parseInt(parts[3]),  // middle raw value
+              parseInt(parts[4]),  // ring raw value
+              parseInt(parts[5])   // pinky raw value
             ];
 
-            // 處理電位器方向調整
+            // Process potentiometer direction adjustment
             const processedFingers = adjustFingerDirection(rawFingers);
 
-            // 解析 IMU 數據 (索引 7-15)
+            // Parse IMU data (indices 7-15)
             const accel = {
               x: parseFloat(parts[7]),
               y: parseFloat(parts[8]),
@@ -251,31 +251,31 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
               z: parseFloat(parts[15])
             };
 
-            // 更新傳感器數據
+            // Update sensor data
             const newSensorData = {
               fingers: processedFingers,
               accel,
               gyro,
               mag,
-              emg: parseInt(parts[6]) // EMG 數據在索引 6
+              emg: parseInt(parts[6]) // EMG data at index 6
             };
 
             setSensorData(newSensorData as SensorData);
             onDataReceived?.(newSensorData);
 
             if (isInitializing) {
-              console.log('初始化中，原始數據:', rawFingers, '處理後:', processedFingers);
+              console.log('Initializing, raw data:', rawFingers, 'processed:', processedFingers);
             }
           } else if (parts.length >= 10) { // DATA + 9 values (fingers(5), emg(1), accel(3))
-            // 解析手指數據 (索引 1-5) - 左手順序：拇指到小指
+            // Parse finger data (indices 1-5) - left hand order: thumb to pinky
             const rawFingers = [
-              parseInt(parts[1]),  // 拇指 (finger1)
-              parseInt(parts[2]),  // 食指 (finger2)
-              parseInt(parts[3]),  // 中指 (finger3)
-              parseInt(parts[4]),  // 無名指 (finger4)
-              parseInt(parts[5])   // 小指 (finger5)
+              parseInt(parts[1]),  // thumb (finger1)
+              parseInt(parts[2]),  // index (finger2)
+              parseInt(parts[3]),  // middle (finger3)
+              parseInt(parts[4]),  // ring (finger4)
+              parseInt(parts[5])   // pinky (finger5)
             ];
-            // 限幅到 0..1023，避免負值導致 3D 模型反向或 UI 條形圖異常
+            // Clamp to 0..1023 to avoid negative values causing 3D model inversion or UI bar chart anomalies
             const fingers = rawFingers.map(v => Math.max(0, Math.min(1023, v)));
 
             const accel = {
@@ -294,12 +294,12 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
 
             setSensorData(newSensorData as SensorData);
             onDataReceived?.(newSensorData);
-            console.log('解析到數據(簡化格式):', newSensorData);
+            console.log('Parsed data (simplified format):', newSensorData);
           }
         }
 
-        // 保留舊格式的兼容性
-        // 解析手指彎曲數據
+        // Retain backward compatibility with old format
+        // Parse finger bend data
         else if (trimmedLine.startsWith('Fingers:')) {
           const fingersMatch = trimmedLine.match(/Fingers:\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+)/);
           if (fingersMatch) {
@@ -318,7 +318,7 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
           }
         }
 
-        // 解析加速度計數據
+        // Parse accelerometer data
         else if (trimmedLine.startsWith('Accel:')) {
           const accelMatch = trimmedLine.match(/Accel:\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+)/);
           if (accelMatch) {
@@ -335,7 +335,7 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
           }
         }
 
-        // 解析陀螺儀數據
+        // Parse gyroscope data
         else if (trimmedLine.startsWith('Gyro:')) {
           const gyroMatch = trimmedLine.match(/Gyro:\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+)/);
           if (gyroMatch) {
@@ -352,7 +352,7 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
           }
         }
 
-        // 解析磁力計數據
+        // Parse magnetometer data
         else if (trimmedLine.startsWith('Mag:')) {
           const magMatch = trimmedLine.match(/Mag:\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+)/);
           if (magMatch) {
@@ -369,18 +369,18 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
           }
         }
 
-        // 解析AI分析结果
-        else if (trimmedLine.includes('=== AI分析結果 ===')) {
+        // Parse AI analysis results
+        else if (trimmedLine.includes('=== AI Analysis Results ===')) {
           setAiAnalysisData(prev => ({ ...prev, isAnalyzing: true }));
         }
-        else if (trimmedLine.startsWith('分析次數:')) {
-          const countMatch = trimmedLine.match(/分析次數:\s*(\d+)/);
+        else if (trimmedLine.startsWith('Analysis Count:')) {
+          const countMatch = trimmedLine.match(/Analysis Count:\s*(\d+)/);
           if (countMatch) {
             setAiAnalysisData(prev => ({ ...prev, analysisCount: parseInt(countMatch[1]) }));
           }
         }
-        else if (trimmedLine.startsWith('帕金森等級:')) {
-          const levelMatch = trimmedLine.match(/帕金森等級:\s*(\d+)\s*\(([^)]+)\)/);
+        else if (trimmedLine.startsWith('Parkinson Level:')) {
+          const levelMatch = trimmedLine.match(/Parkinson Level:\s*(\d+)\s*\(([^)]+)\)/);
           if (levelMatch) {
             setAiAnalysisData(prev => ({
               ...prev,
@@ -389,26 +389,26 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
             }));
           }
         }
-        else if (trimmedLine.startsWith('置信度:')) {
-          const confidenceMatch = trimmedLine.match(/置信度:\s*([\d.]+)%/);
+        else if (trimmedLine.startsWith('Confidence:')) {
+          const confidenceMatch = trimmedLine.match(/Confidence:\s*([\d.]+)%/);
           if (confidenceMatch) {
             setAiAnalysisData(prev => ({ ...prev, confidence: parseFloat(confidenceMatch[1]) }));
           }
         }
-        else if (trimmedLine.startsWith('訓練建議:')) {
+        else if (trimmedLine.startsWith('Training Recommendation:')) {
           const recommendation = trimmedLine.split(':')[1]?.trim();
           if (recommendation) {
             setAiAnalysisData(prev => ({ ...prev, recommendation }));
           }
         }
-        else if (trimmedLine.startsWith('建議阻力設定:')) {
-          const resistanceMatch = trimmedLine.match(/建議阻力設定:\s*(\d+)度/);
+        else if (trimmedLine.startsWith('Recommended Resistance:')) {
+          const resistanceMatch = trimmedLine.match(/Recommended Resistance:\s*(\d+) deg/);
           if (resistanceMatch) {
             setAiAnalysisData(prev => ({ ...prev, recommendedResistance: parseInt(resistanceMatch[1]) }));
           }
         }
         else if (trimmedLine.includes('==================') && aiAnalysisData.isAnalyzing) {
-          // AI分析完成，保存记录
+          // AI analysis complete, save record
           try {
             const record = analysisRecordService.saveRecord({
               analysisCount: aiAnalysisData.analysisCount,
@@ -421,23 +421,23 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
                 fingerPositions: sensorData.fingers.map(v => Math.round((v / 1023) * 100)),
                 accelerometer: sensorData.accel,
                 gyroscope: sensorData.gyro,
-                emg: 0, // EMG数据如果有的话
+                emg: 0, // EMG data if available
               },
               source: 'arduino',
             });
-            console.log('Arduino AI分析记录已保存:', record);
+            console.log('Arduino AI analysis record saved:', record);
             setAiAnalysisData(prev => ({ ...prev, isAnalyzing: false }));
-            // 分析完成后弹出20秒训练确认
+            // Show 20-second training confirmation dialog after analysis
             setShowTrainingConfirm(true);
           } catch (error) {
-            console.error('保存Arduino AI分析记录失败:', error);
+            console.error('Failed to save Arduino AI analysis record:', error);
           }
         }
 
-        // 解析舵机配置回显：SERVO_CFG,OK,zero(5),min(5),max(5),dir(5)
+        // Parse servo config echo: SERVO_CFG,OK,zero(5),min(5),max(5),dir(5)
         if (trimmedLine.startsWith('SERVO_CFG,OK,')) {
           const parts = trimmedLine.split(',');
-          // parts: [SERVO_CFG, OK, z0,z1,z2,z3,z4, min0..min4, max0..max4, dir0..dir4]
+          // parts: [SERVO_CFG, OK, z0,z1,z2,z3,z4, min0..min4, max0..max4, dir0..dir4]  (no change)
           if (parts.length >= 2 + 5 + 5 + 5 + 5) {
             const base = 2;
             const mins = parts.slice(base + 5, base + 10).map(v => parseInt(v));
@@ -448,12 +448,12 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
         }
       }
     } catch (err) {
-      console.error('數據解析錯誤:', err);
-      setError(`數據解析錯誤: ${(err as Error).message}`);
+      console.error('Data parse error:', err);
+      setError(`Data parse error: ${(err as Error).message}`);
     }
   };
 
-  // 舵机命令封装
+  // Servo command wrappers
   const servoSet = (fingerId: number, angle: number) => sendCommand(`SERVO_SET,${fingerId},${Math.max(0, Math.min(180, Math.round(angle)))}`);
   const servoInitAll = (angles: number[]) => sendCommand(`SERVO_INIT,${angles.map(a => Math.max(0, Math.min(180, Math.round(a)))).join(',')}`);
   const servoLimit = (fingerId: number, minA: number, maxA: number) => sendCommand(`SERVO_LIMIT,${fingerId},${Math.max(0, Math.min(180, Math.round(minA)))},${Math.max(0, Math.min(180, Math.round(maxA)))}`);
@@ -461,18 +461,18 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
   const servoLoad = () => sendCommand('SERVO_LOAD');
   const startServoTraining = (durationMs = 20000, mode = 0, level = 2) => sendCommand(`TRAIN_SERVO,${durationMs},${mode},${level}`);
 
-  // 網頁端初始化函數
+  // Web-side initialization function
   const startWebInitialization = () => {
-    console.log('🔄 開始網頁端手指基線初始化...');
-    console.log('📋 請保持手指完全伸直，3秒後開始收集基線數據');
+    console.log('🔄 Starting web-side finger baseline initialization...');
+    console.log('📋 Please keep fingers fully extended, collecting baseline data in 3 seconds');
 
     setIsInitializing(true);
     setInitializationComplete(false);
 
-    // 3秒倒計時
+    // 3-second countdown
     let countdown = 3;
     const countdownInterval = setInterval(() => {
-      console.log(`⏰ 倒計時: ${countdown} 秒...`);
+      console.log(`⏰ Countdown: ${countdown} s...`);
       countdown--;
       if (countdown < 0) {
         clearInterval(countdownInterval);
@@ -481,28 +481,28 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
     }, 1000);
   };
 
-  // 收集基線數據
+  // Collect baseline data
   const collectBaseline = () => {
-    console.log('📊 開始收集手指伸直基線數據...');
+    console.log('📊 Starting to collect finger extension baseline data...');
 
-    const baselineData: number[][] = [[], [], [], [], []]; // 5個手指的數據收集
-    const sampleCount = 30; // 收集30個樣本（約3秒）
+    const baselineData: number[][] = [[], [], [], [], []]; // data collection for 5 fingers
+    const sampleCount = 30; // collect 30 samples (~3 seconds)
     let currentSample = 0;
 
     const collectInterval = setInterval(() => {
       if (sensorData && currentSample < sampleCount) {
-        // 收集當前的原始數據作為基線
+        // Collect current raw data as baseline
         sensorData.fingers.forEach((value, index) => {
           baselineData[index].push(value);
         });
 
         currentSample++;
-        console.log(`📈 收集進度: ${currentSample}/${sampleCount}`);
+        console.log(`📈 Collection progress: ${currentSample}/${sampleCount}`);
 
       } else if (currentSample >= sampleCount) {
         clearInterval(collectInterval);
 
-        // 計算平均基線值
+        // Calculate average baseline values
         const newBaselines = baselineData.map(fingerData => {
           const sum = fingerData.reduce((a, b) => a + b, 0);
           return sum / fingerData.length;
@@ -512,58 +512,58 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
         setIsInitializing(false);
         setInitializationComplete(true);
 
-        console.log('✅ 網頁端初始化完成！');
-        console.log('📊 手指伸直基線值:', newBaselines);
-        console.log('🎯 3D模型已重置為伸直狀態');
-        console.log('👆 現在可以開始手指彎曲檢測');
+        console.log('✅ Web-side initialization complete!');
+        console.log('📊 Finger extension baseline values:', newBaselines);
+        console.log('🎯 3D model reset to extended state');
+        console.log('👆 Finger bend detection can now begin');
 
-        // 通知3D模型重置為伸直狀態
+        // Notify 3D model to reset to extended state
         onDataReceived?.({
-          fingers: [0, 0, 0, 0, 0], // 重置為伸直狀態
+          fingers: [0, 0, 0, 0, 0], // reset to extended state
           accel: { x: 0, y: 0, z: 0 },
           gyro: { x: 0, y: 0, z: 0 },
           mag: { x: 0, y: 0, z: 0 },
           emg: 0
         });
       }
-    }, 100); // 每100ms收集一次
+    }, 100); // collect once every 100ms
   };
 
-  // 調整手指方向 - 直接反轉數據
+  // Adjust finger direction - directly invert data
   const adjustFingerDirection = (fingerData: number[]): number[] => {
     const result = fingerData.map((value, index) => {
       let adjustedValue = value;
 
-      // 如果設置為反向電位器，將彎曲度反轉
+      // If potentiometer is set to reversed, invert the bend value
       if (potentiometerReversed) {
-        // 假設正常情況下，彎曲度範圍是0-200
-        // 反轉公式：新值 = 最大值 - 原值
+        // Assuming the normal bend range is 0-200
+        // Inversion formula: new value = max value - original value
         const maxValue = 200;
         adjustedValue = Math.max(0, maxValue - value);
 
-        // 調試信息
-        if (index === 0) { // 只為第一個手指打印調試信息
-          console.log(`🔄 反向模式: 原值=${value} → 調整值=${adjustedValue}`);
+        // Debug info
+        if (index === 0) { // print debug info only for the first finger
+          console.log(`🔄 Reverse mode: original=${value} → adjusted=${adjustedValue}`);
         }
       }
 
-      // 小拇指敏感度增強 (index 4 是小拇指)
+      // Pinky sensitivity enhancement (index 4 is the pinky)
       if (index === 4) {
-        return adjustedValue * 1.5; // 增加50%敏感度
+        return adjustedValue * 1.5; // increase sensitivity by 50%
       }
 
       return adjustedValue;
     });
 
-    // 調試信息
+    // Debug info
     if (potentiometerReversed) {
-      console.log('🔄 反向電位器已啟用，原數據:', fingerData, '調整後:', result);
+      console.log('🔄 Reversed potentiometer enabled, original:', fingerData, 'adjusted:', result);
     }
 
     return result;
   };
 
-  // 組件卸載時斷開連接
+  // Disconnect when component unmounts
   useEffect(() => {
     return () => {
       if (isConnected) {
@@ -580,8 +580,8 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold">帕金森輔助裝置</h2>
-        <p className="text-gray-600 dark:text-gray-300">版本 2.0</p>
+        <h2 className="text-xl font-semibold">Parkinson's Assistance Device</h2>
+        <p className="text-gray-600 dark:text-gray-300">Version 2.0</p>
       </div>
 
       {error && (
@@ -592,21 +592,21 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
 
       <div className="space-y-4">
         <div className="flex items-center justify-between p-4 bg-gray-100 dark:bg-neutral-700 rounded-lg">
-          <span>連接狀態</span>
+          <span>Connection Status</span>
           <span className={`font-semibold ${isConnected ? 'text-green-500' : 'text-yellow-500'}`}>
-            {isConnected ? '已連接' : '未連接'}
+            {isConnected ? 'Connected' : 'Not Connected'}
           </span>
         </div>
         
         {isConnected && (
           <>
             <div className="flex items-center justify-between p-4 bg-gray-100 dark:bg-neutral-700 rounded-lg">
-              <span>裝置序列號</span>
+              <span>Device Serial No.</span>
               <span>PD-2023-001</span>
             </div>
             
             <div className="flex items-center justify-between p-4 bg-gray-100 dark:bg-neutral-700 rounded-lg">
-              <span>韌體版本</span>
+              <span>Firmware Version</span>
               <span>v2.1.4</span>
             </div>
           </>
@@ -619,14 +619,14 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
             onClick={connectToArduino}
             className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition"
           >
-            連接裝置
+            Connect Device
           </button>
         ) : (
           <button 
             onClick={disconnectArduino}
             className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-lg transition"
           >
-            斷開連接
+            Disconnect
           </button>
         )}
         
@@ -635,13 +635,13 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
           disabled={!isConnected}
           onClick={() => sendCommand('START')}
         >
-          同步數據
+          Sync Data
         </button>
       </div>
 
-      {/* 電位器方向設置 */}
+      {/* Potentiometer Direction Settings */}
       <div className="mt-4 p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg">
-        <h3 className="text-sm font-medium mb-2">電位器設置</h3>
+        <h3 className="text-sm font-medium mb-2">Potentiometer Settings</h3>
         <div className="flex items-center space-x-3">
           <label className="flex items-center cursor-pointer">
             <input
@@ -658,25 +658,25 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
               }`} />
             </div>
             <span className="ml-3 text-sm">
-              反向電位器 {potentiometerReversed ? '(減少=彎曲)' : '(增加=彎曲)'}
+              Reverse Potentiometer {potentiometerReversed ? '(Decrease = Bend)' : '(Increase = Bend)'}
             </span>
           </label>
         </div>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          如果手指彎曲方向相反，請開啟此選項
+          If the finger bend direction is reversed, enable this option.
         </p>
       </div>
 
-      {/* 舵機設置 */}
+      {/* Servo Settings */}
       {isConnected && (
         <div className="mt-4 p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg">
-          <h3 className="text-sm font-medium mb-3">舵機設置（拇指→小指）</h3>
+          <h3 className="text-sm font-medium mb-3">Servo Settings (Thumb → Pinky)</h3>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            {['拇指','食指','中指','無名指','小指'].map((label, idx) => (
+            {['Thumb','Index','Middle','Ring','Pinky'].map((label, idx) => (
               <div key={idx} className="p-3 bg-white dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-600">
                 <div className="text-xs font-medium mb-2">{label}</div>
                 <div className="space-y-2">
-                  <label className="block text-xs">初始角: {servoInitialAngles[idx]}°</label>
+                  <label className="block text-xs">Initial Angle: {servoInitialAngles[idx]}°</label>
                   <input type="range" min={0} max={180} value={servoInitialAngles[idx]}
                          onChange={(e) => setServoInitialAngles(updateArrayValue(servoInitialAngles, idx, parseInt(e.target.value)))}
                   />
@@ -690,38 +690,38 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
                   </div>
                   <div className="flex gap-2">
                     <button className="flex-1 text-xs bg-blue-500 text-white rounded px-2 py-1"
-                            onClick={() => servoSet(idx, servoInitialAngles[idx])}>測試</button>
+                            onClick={() => servoSet(idx, servoInitialAngles[idx])}>Test</button>
                     <button className="flex-1 text-xs bg-gray-200 dark:bg-neutral-600 rounded px-2 py-1"
-                            onClick={() => servoLimit(idx, servoMinAngles[idx], servoMaxAngles[idx])}>限位</button>
+                            onClick={() => servoLimit(idx, servoMinAngles[idx], servoMaxAngles[idx])}>Limit</button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
           <div className="mt-3 flex gap-2">
-            <button className="text-xs bg-purple-500 text-white rounded px-3 py-1" onClick={() => servoInitAll(servoInitialAngles)}>下發全部初始角</button>
-            <button className="text-xs bg-emerald-500 text-white rounded px-3 py-1" onClick={servoSave}>保存到設備</button>
-            <button className="text-xs bg-gray-300 dark:bg-neutral-600 rounded px-3 py-1" onClick={servoLoad}>讀取設備配置</button>
+            <button className="text-xs bg-purple-500 text-white rounded px-3 py-1" onClick={() => servoInitAll(servoInitialAngles)}>Send All Initial Angles</button>
+            <button className="text-xs bg-emerald-500 text-white rounded px-3 py-1" onClick={servoSave}>Save to Device</button>
+            <button className="text-xs bg-gray-300 dark:bg-neutral-600 rounded px-3 py-1" onClick={servoLoad}>Load Device Config</button>
           </div>
-          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">默認安全角: 最小 10°，最大 170°。如果不確定請保持默認。</p>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Default safe angles: min 10°, max 170°. Keep defaults if unsure.</p>
         </div>
       )}
 
       {isConnected && (
         <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4">即時傳感器數據</h3>
+          <h3 className="text-lg font-semibold mb-4">Live Sensor Data</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">手指彎曲度</h4>
+              <h4 className="font-medium mb-2">Finger Bend</h4>
               {sensorData.fingers.map((value, index) => {
-                // 將原始傳感器數據 (0-1023) 轉換為百分比 (0-100%)
+                // Convert raw sensor data (0-1023) to percentage (0-100%)
                 const percentage = Math.min(100, Math.max(0, (value / 1023) * 100));
                 const displayValue = Math.round(percentage);
 
                 return (
                   <div key={index} className="flex items-center mb-2">
-                    <span className="w-16">手指 {index + 1}:</span>
+                    <span className="w-16">Finger {index + 1}:</span>
                     <div className="flex-1 ml-2">
                       <div className="w-full bg-gray-300 dark:bg-neutral-600 rounded-full h-2.5">
                         <div
@@ -737,7 +737,7 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
             </div>
             
             <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">加速度計 (g)</h4>
+              <h4 className="font-medium mb-2">Accelerometer (g)</h4>
               <div className="space-y-2">
                 <div>X: {sensorData.accel.x.toFixed(2)}</div>
                 <div>Y: {sensorData.accel.y.toFixed(2)}</div>
@@ -746,7 +746,7 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
             </div>
             
             <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">陀螺儀 (deg/s)</h4>
+              <h4 className="font-medium mb-2">Gyroscope (deg/s)</h4>
               <div className="space-y-2">
                 <div>X: {sensorData.gyro.x.toFixed(2)}</div>
                 <div>Y: {sensorData.gyro.y.toFixed(2)}</div>
@@ -755,23 +755,23 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
             </div>
           </div>
 
-          {/* AI分析状态显示 */}
+          {/* AI analysis status display */}
           {(aiAnalysisData.analysisCount > 0 || aiAnalysisData.isAnalyzing) && (
             <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-4">AI分析結果</h3>
+              <h3 className="text-lg font-semibold mb-4">AI Analysis Results</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
-                  <h4 className="font-medium mb-2">分析狀態</h4>
+                  <h4 className="font-medium mb-2">Analysis Status</h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span>分析次數:</span>
+                      <span>Analysis Count:</span>
                       <span className="font-medium">{aiAnalysisData.analysisCount}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>狀態:</span>
+                      <span>Status:</span>
                       <span className={`font-medium ${aiAnalysisData.isAnalyzing ? 'text-blue-600' : 'text-green-600'}`}>
-                        {aiAnalysisData.isAnalyzing ? '分析中...' : '已完成'}
+                        {aiAnalysisData.isAnalyzing ? 'Analyzing...' : 'Completed'}
                       </span>
                     </div>
                   </div>
@@ -779,19 +779,19 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
 
                 {aiAnalysisData.parkinsonLevel > 0 && (
                   <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
-                    <h4 className="font-medium mb-2">分析結果</h4>
+                    <h4 className="font-medium mb-2">Analysis Result</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>等級:</span>
+                        <span>Level:</span>
                         <span className="font-medium">{aiAnalysisData.parkinsonLevel} ({aiAnalysisData.parkinsonDescription})</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>置信度:</span>
+                        <span>Confidence:</span>
                         <span className="font-medium">{aiAnalysisData.confidence.toFixed(1)}%</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>建議阻力:</span>
-                        <span className="font-medium">{aiAnalysisData.recommendedResistance}度</span>
+                        <span>Recommended Resistance:</span>
+                        <span className="font-medium">{aiAnalysisData.recommendedResistance}°</span>
                       </div>
                     </div>
                   </div>
@@ -800,7 +800,7 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
 
               {aiAnalysisData.recommendation && (
                 <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <h4 className="font-medium mb-2 text-blue-800 dark:text-blue-200">訓練建議</h4>
+                  <h4 className="font-medium mb-2 text-blue-800 dark:text-blue-200">Training Recommendation</h4>
                   <p className="text-blue-700 dark:text-blue-300">{aiAnalysisData.recommendation}</p>
                 </div>
               )}
@@ -809,17 +809,17 @@ export default function ArduinoConnector({ onDataReceived }: ArduinoConnectorPro
         </div>
       )}
 
-      {/* 訓練確認彈窗 */}
+      {/* Training Confirmation Modal */}
       {showTrainingConfirm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 w-full max-w-md shadow-lg">
-            <h4 className="text-lg font-semibold mb-3">開始 20 秒阻力訓練？</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">AI 建議等級：{aiAnalysisData.parkinsonLevel}，建議阻力：{aiAnalysisData.recommendedResistance}°</p>
+            <h4 className="text-lg font-semibold mb-3">Start 20-second Resistance Training?</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">AI Recommended Level: {aiAnalysisData.parkinsonLevel}, Recommended Resistance: {aiAnalysisData.recommendedResistance}°</p>
             <div className="flex justify-end gap-2">
-              <button className="px-3 py-1 rounded bg-gray-200 dark:bg-neutral-700" onClick={() => setShowTrainingConfirm(false)}>取消</button>
+              <button className="px-3 py-1 rounded bg-gray-200 dark:bg-neutral-700" onClick={() => setShowTrainingConfirm(false)}>Cancel</button>
               <button className="px-3 py-1 rounded bg-blue-600 text-white"
                       onClick={() => { startServoTraining(20000, 0, Math.max(1, Math.min(5, aiAnalysisData.parkinsonLevel || 2))); setShowTrainingConfirm(false); }}>
-                開始訓練
+                Start Training
               </button>
             </div>
           </div>

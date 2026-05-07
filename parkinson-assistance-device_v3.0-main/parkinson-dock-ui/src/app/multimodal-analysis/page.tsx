@@ -16,12 +16,12 @@ type SensorSnapshot = {
 
 export default function MultimodalAnalysisPage() {
   const sidebarLinks = [
-    { label: 'AI 症狀分析', href: '/ai-analysis', icon: <Brain className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" /> },
-    { label: '語音檢測', href: '/voice-analysis', icon: <Activity className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" /> },
-    { label: '多模態分析', href: '/multimodal-analysis', icon: <Settings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" /> },
+    { label: 'AI Symptom Analysis', href: '/ai-analysis', icon: <Brain className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" /> },
+    { label: 'Voice Detection', href: '/voice-analysis', icon: <Activity className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" /> },
+    { label: 'Multimodal Analysis', href: '/multimodal-analysis', icon: <Settings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" /> },
   ];
 
-  // 即時數據展示
+  // Live data display
   const [sensorData, setSensorData] = useState<SensorSnapshot>({
     fingerPositions: [0, 0, 0, 0, 0],
     accelerometer: { x: 0, y: 0, z: 0 },
@@ -29,13 +29,13 @@ export default function MultimodalAnalysisPage() {
     emg: 0,
   });
 
-  // 採集隊列
+  // Collection queue
   const fingerSeriesRef = useRef<number[][]>([[], [], [], [], []]);
   const accelSeriesRef = useRef<{ x: number[]; y: number[]; z: number[] }>({ x: [], y: [], z: [] });
   const emgSeriesRef = useRef<number[]>([]);
   const tsSeriesRef = useRef<number[]>([]);
 
-  // 狀態
+  // State
   const [isCollecting, setIsCollecting] = useState(false);
   const isCollectingRef = useRef(false);
   useEffect(() => { isCollectingRef.current = isCollecting; }, [isCollecting]);
@@ -70,11 +70,11 @@ export default function MultimodalAnalysisPage() {
 
   const startMultimodalAnalysis = async () => {
     if (!isConnected) {
-      alert('請先連接設備（串口或藍牙）');
+      alert('Please connect a device first (Serial or Bluetooth)');
       return;
     }
 
-    // 清空隊列
+    // Clear queue
     fingerSeriesRef.current = [[], [], [], [], []];
     accelSeriesRef.current = { x: [], y: [], z: [] };
     emgSeriesRef.current = [];
@@ -84,7 +84,7 @@ export default function MultimodalAnalysisPage() {
     setSummary('');
     setGroups([]);
 
-    // 開始採集 10 秒
+    // Start collecting for 10 seconds
     setIsCollecting(true);
     try {
       await sendCommand('START');
@@ -102,7 +102,7 @@ export default function MultimodalAnalysisPage() {
 
     const durationSec = Math.max(0.001, (tsSeriesRef.current.at(-1)! - tsSeriesRef.current[0]!) / 1000);
 
-    // 手指抓握評估
+    // Finger grasp assessment
     const graspCyclesPerFinger: number[] = [];
     const graspQualityPerFinger: number[] = [];
     for (let i = 0; i < 5; i++) {
@@ -123,7 +123,7 @@ export default function MultimodalAnalysisPage() {
       graspQualityPerFinger.push(Math.max(0, Math.min(100, (amp / 1023) * 100)));
     }
 
-    // 震顫頻率（加速度模長過零）
+    // Tremor frequency (accelerometer magnitude zero-crossing)
     const ax = accelSeriesRef.current.x, ay = accelSeriesRef.current.y, az = accelSeriesRef.current.z;
     const n = Math.min(ax.length, ay.length, az.length);
     const mag: number[] = [];
@@ -136,11 +136,11 @@ export default function MultimodalAnalysisPage() {
     }
     const tremorHz = Math.max(0, (zc / 2) / Math.max(0.001, durationSec));
 
-    // EMG：RMS
+    // EMG: RMS
     const emg = emgSeriesRef.current;
     const emgRms = Math.sqrt(emg.reduce((a, b) => a + b * b, 0) / Math.max(1, emg.length));
 
-    // 綜合指標
+    // Combined metrics
     let tremorScore = 0;
     if (tremorHz >= 3 && tremorHz <= 7) tremorScore = 70; else if (tremorHz > 7) tremorScore = 40; else tremorScore = 20;
     const midIdx = 2;
@@ -148,16 +148,16 @@ export default function MultimodalAnalysisPage() {
     const emgScore = Math.min(100, (emgRms / 512) * 100);
     const overallSeverity = Math.max(0, Math.min(100, 0.5 * tremorScore + 0.3 * (100 - graspScore) + 0.2 * emgScore));
 
-    const fingerSummary = `抓握循環(中指)≈${graspCyclesPerFinger[midIdx]} 次，幅度 ${graspQualityPerFinger[midIdx].toFixed(1)}%`;
-    const tremorSummary = `推測震顫頻率 ≈ ${tremorHz.toFixed(2)} Hz`;
+    const fingerSummary = `Grasp cycles (middle finger) ≈ ${graspCyclesPerFinger[midIdx]}, amplitude ${graspQualityPerFinger[midIdx].toFixed(1)}%`;
+    const tremorSummary = `Estimated tremor frequency ≈ ${tremorHz.toFixed(2)} Hz`;
     const emgSummary = `EMG RMS ≈ ${emgRms.toFixed(1)}`;
-    const mergedSummary = `${fingerSummary}；${tremorSummary}；${emgSummary}`;
+    const mergedSummary = `${fingerSummary}; ${tremorSummary}; ${emgSummary}`;
 
     setSeverity(overallSeverity);
     setSummary(mergedSummary);
     setGroups(getRecommendations(overallSeverity));
 
-    // 保存結果
+    // Save result
     try {
       const { stage, confidencePercent } = classifySeverity(overallSeverity);
       analysisRecordService.saveRecord({
@@ -185,7 +185,7 @@ export default function MultimodalAnalysisPage() {
         duration: Math.round(durationSec),
       });
     } catch (e) {
-      console.error('保存多模態分析記錄失敗', e);
+      console.error('Failed to save multimodal analysis record', e);
     }
   };
 
@@ -198,7 +198,7 @@ export default function MultimodalAnalysisPage() {
               <div className="flex flex-col h-full">
                 <div className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20">
                   <div className="h-6 w-6 bg-blue-600 dark:bg-blue-500 rounded-lg flex-shrink-0 flex items-center justify-center"></div>
-                  <span className="font-medium text-black dark:text-white whitespace-nowrap overflow-hidden text-ellipsis">帕金森輔助設備</span>
+                  <span className="font-medium text-black dark:text-white whitespace-nowrap overflow-hidden text-ellipsis">Parkinson's Assist Device</span>
                 </div>
                 <div className="mt-4 space-y-1">
                   {sidebarLinks.map((link, index) => (
@@ -212,7 +212,7 @@ export default function MultimodalAnalysisPage() {
           <div className="flex-1">
             <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">多模態分析</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Multimodal Analysis</h2>
                 <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
               </div>
 
@@ -220,25 +220,25 @@ export default function MultimodalAnalysisPage() {
                 <div className="flex gap-2">
                   {!isConnected ? (
                     <>
-                      <Button onClick={connectSerial} className="bg-blue-600 hover:bg-blue-700">串口連接</Button>
-                      <Button onClick={connectBluetooth} className="bg-blue-600 hover:bg-blue-700">藍牙連接</Button>
+                      <Button onClick={connectSerial} className="bg-blue-600 hover:bg-blue-700">Serial Connection</Button>
+                      <Button onClick={connectBluetooth} className="bg-blue-600 hover:bg-blue-700">Bluetooth Connection</Button>
                     </>
                   ) : (
-                    <Button onClick={disconnect} variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white">斷開連接</Button>
+                    <Button onClick={disconnect} variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white">Disconnect</Button>
                   )}
                   <Button onClick={startMultimodalAnalysis} disabled={!isConnected || isCollecting} className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">
-                    {isCollecting ? '採集中（10秒）' : '開始多模態分析（採集10秒）'}
+                    {isCollecting ? 'Collecting (10s)...' : 'Start Multimodal Analysis (10s collection)'}
                   </Button>
                 </div>
 
-                {/* 即時數據 */}
+                {/* Live data */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
-                    <h4 className="font-medium mb-2">手指彎曲度</h4>
+                    <h4 className="font-medium mb-2">Finger Bend</h4>
                     <div className="space-y-1">
                       {sensorData.fingerPositions.map((value, index) => (
                         <div key={index} className="flex items-center justify-between text-sm">
-                          <span>手指 {index + 1}</span>
+                          <span>Finger {index + 1}</span>
                           <span className="font-medium">{value}%</span>
                         </div>
                       ))}
@@ -247,28 +247,28 @@ export default function MultimodalAnalysisPage() {
                   <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
                     <h4 className="font-medium mb-2">IMU / EMG</h4>
                     <div className="space-y-1 text-sm">
-                      <div>加速度: X: {sensorData.accelerometer.x.toFixed(2)} Y: {sensorData.accelerometer.y.toFixed(2)} Z: {sensorData.accelerometer.z.toFixed(2)}</div>
-                      <div>陀螺儀: X: {sensorData.gyroscope.x.toFixed(2)} Y: {sensorData.gyroscope.y.toFixed(2)} Z: {sensorData.gyroscope.z.toFixed(2)}</div>
+                      <div>Accel: X: {sensorData.accelerometer.x.toFixed(2)} Y: {sensorData.accelerometer.y.toFixed(2)} Z: {sensorData.accelerometer.z.toFixed(2)}</div>
+                      <div>Gyro: X: {sensorData.gyroscope.x.toFixed(2)} Y: {sensorData.gyroscope.y.toFixed(2)} Z: {sensorData.gyroscope.z.toFixed(2)}</div>
                       <div>EMG: {sensorData.emg.toFixed ? sensorData.emg.toFixed(0) : sensorData.emg}</div>
                     </div>
                   </div>
                 </div>
 
-                {/* 分析結果 */}
+                {/* Analysis results */}
                 {severity !== null && (
                   <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                    <div className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">分析結果</div>
+                    <div className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">Analysis Results</div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                       <div className="p-3 bg-white/60 dark:bg-neutral-800/50 rounded">
-                        <div className="text-gray-600 dark:text-gray-400">綜合嚴重度</div>
+                        <div className="text-gray-600 dark:text-gray-400">Overall Severity</div>
                         <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{severity.toFixed(1)}%</div>
                       </div>
                       <div className="p-3 bg-white/60 dark:bg-neutral-800/50 rounded">
-                        <div className="text-gray-600 dark:text-gray-400">摘要</div>
+                        <div className="text-gray-600 dark:text-gray-400">Summary</div>
                         <div className="text-gray-800 dark:text-gray-200">{summary}</div>
                       </div>
                       <div className="p-3 bg-white/60 dark:bg-neutral-800/50 rounded">
-                        <div className="text-gray-600 dark:text-gray-400 mb-1">訓練建議</div>
+                        <div className="text-gray-600 dark:text-gray-400 mb-1">Training Recommendations</div>
                         <ul className="list-disc pl-5 space-y-1 text-gray-800 dark:text-gray-200">
                           {groups.flatMap(g => g.items).slice(0, 5).map((it, idx) => (
                             <li key={idx} className="text-sm">{it}</li>

@@ -54,10 +54,10 @@ class Hand3D {
     createScene() {
         this.scene = new THREE.Scene();
         
-        // 創建背景
+        // Create background
         this.scene.background = new THREE.Color(0x0a0a0a);
         
-        // 添加地面
+        // Add ground
         const groundGeometry = new THREE.PlaneGeometry(20, 20);
         const groundMaterial = new THREE.MeshPhongMaterial({ 
             color: 0xffffff,
@@ -86,13 +86,13 @@ class Hand3D {
         this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
-        // 啟用陰影
+        // Enable shadows
         // @ts-ignore
         this.renderer.shadowMap.enabled = true;
         // @ts-ignore
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         
-        // 增強渲染效果 (移除不再支持的属性)
+        // Enhance rendering (removed deprecated properties)
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.2;
         
@@ -100,11 +100,11 @@ class Hand3D {
     }
     
     createLights() {
-        // 環境光
+        // Ambient light
         const ambientLight = new THREE.AmbientLight(0x2a3f5f, 0.3);
         this.scene!.add(ambientLight);
         
-        // 主要方向光
+        // Main directional light
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
         directionalLight.position.set(8, 10, 6);
         directionalLight.castShadow = true;
@@ -119,36 +119,36 @@ class Hand3D {
         directionalLight.shadow.bias = -0.0001;
         this.scene!.add(directionalLight);
         
-        // 藍色科技光
+        // Blue tech light
         const techLight = new THREE.DirectionalLight(0x4a90e2, 0.8);
         techLight.position.set(-8, 5, 4);
         this.scene!.add(techLight);
         
-        // 橙色暖光
+        // Orange warm light
         const warmLight = new THREE.DirectionalLight(0xff8c42, 0.4);
         warmLight.position.set(6, 3, -4);
         this.scene!.add(warmLight);
         
-        // 頂部環境光
+        // Top ambient light
         const skyLight = new THREE.HemisphereLight(0x87ceeb, 0x2f4f4f, 0.6);
         this.scene!.add(skyLight);
         
-        // 背光
+        // Rim backlight
         const rimLight = new THREE.DirectionalLight(0x00ffff, 0.5);
         rimLight.position.set(0, 8, -12);
         this.scene!.add(rimLight);
         
-        // 底部補光
+        // Bottom fill light
         const bottomLight = new THREE.DirectionalLight(0x6a5acd, 0.3);
         bottomLight.position.set(0, -5, 8);
         this.scene!.add(bottomLight);
         
-        // 添加動態光效
+        // Add dynamic lighting effects
         this.createDynamicLights();
     }
     
     createDynamicLights() {
-        // 創建動態旋轉的彩色光源
+        // Create dynamically rotating coloured light sources
         const spotLight1 = new THREE.SpotLight(0xff0080, 1, 15, Math.PI * 0.1);
         spotLight1.position.set(5, 8, 5);
         spotLight1.target.position.set(0, 0, 0);
@@ -161,15 +161,15 @@ class Hand3D {
         this.scene!.add(spotLight2);
         this.scene!.add(spotLight2.target);
         
-        // 存儲動態光源以便在動畫中使用
+        // Store dynamic lights for use in animation
         this.dynamicLights = [spotLight1, spotLight2];
     }
     
     loadHandModel() {
-        // 檢查 GLTFLoader 是否可用
+        // Check if GLTFLoader is available
         // @ts-ignore
         if (typeof GLTFLoader === 'undefined') {
-            console.error('GLTFLoader 未載入，使用備用模型');
+            console.error('GLTFLoader not loaded, using fallback model');
             this.createFallbackModel();
             return;
         }
@@ -181,7 +181,7 @@ class Hand3D {
             (gltf) => {
                 this.handModel = gltf.scene;
                 
-                // 設置模型屬性
+                // Set model properties
                 this.handModel.traverse((child) => {
                     if (child instanceof THREE.Mesh) {
                         child.castShadow = true;
@@ -189,35 +189,35 @@ class Hand3D {
                     }
                 });
                 
-                // 設置模型大小和位置 (左手顯示)
+                // Set model scale and position (left hand display)
                 this.handModel.scale.set(2, 2, 2);
                 this.handModel.position.set(0, -1, 0);
 
-                // 設置手部初始旋轉，確保手掌和手指在同一水平面
+                // Set initial hand rotation so palm and fingers are on the same horizontal plane
                 this.handModel.rotation.x = 0;
                 this.handModel.rotation.y = 0;
                 this.handModel.rotation.z = 0;
 
-                // 確保顯示為左手 (如果模型原本是右手，需要鏡像)
-                // 注意：如果GLB模型已經是左手，則不需要鏡像
-                // this.handModel.scale.x = -2; // 取消註釋以鏡像X軸
+                // Ensure it displays as a left hand (if GLB is already left hand, no mirroring needed)
+                // Note: if GLB is already a left hand, mirroring is not needed
+                // this.handModel.scale.x = -2; // Uncomment to mirror X axis
                 
-                // 如果有動畫，設置動畫混合器
+                // If animations exist, set up animation mixer
                 if (gltf.animations && gltf.animations.length > 0) {
                     this.mixer = new THREE.AnimationMixer(this.handModel);
                 }
                 
-                // 收集骨骼引用
+                // Collect bone references
                 this.collectBones();
                 
                 this.scene?.add(this.handModel);
                 
-                console.log('3D手部模型載入成功');
+                console.log('3D hand model loaded successfully');
             },
             undefined,
             (error) => {
-                console.error('載入3D模型失敗:', error);
-                // 如果載入失敗，回退到程序生成的模型
+                console.error('Failed to load 3D model:', error);
+                // Fall back to programmatic model on load failure
                 this.createFallbackModel();
             }
         );
@@ -226,17 +226,17 @@ class Hand3D {
     collectBones() {
         if (!this.handModel) return;
         
-        // 根據實際的骨骼名稱收集手指骨骼 (左手邏輯：拇指到小指)
+        // Collect finger bones by actual bone names (left hand logic: thumb to pinky)
         const fingerBonePatterns = [
-            // finger1: 拇指 (左手)
+            // finger1: thumb (left hand)
             ['thumb.01.L', 'thumb.02.L', 'thumb.03.L'],
-            // finger2: 食指 (左手)
+            // finger2: index (left hand)
             ['finger_index.01.L', 'finger_index.02.L', 'finger_index.03.L'],
-            // finger3: 中指 (左手)
+            // finger3: middle (left hand)
             ['finger_middle.01.L', 'finger_middle.02.L', 'finger_middle.03.L'],
-            // finger4: 無名指 (左手)
+            // finger4: ring (left hand)
             ['finger_ring.01.L', 'finger_ring.02.L', 'finger_ring.03.L'],
-            // finger5: 小指 (左手)
+            // finger5: pinky (left hand)
             ['finger_pinky.01.L', 'finger_pinky.02.L', 'finger_pinky.03.L']
         ];
         
@@ -244,7 +244,7 @@ class Hand3D {
             if (child instanceof THREE.Bone || child.type === 'Bone') {
                 const boneName = child.name;
                 
-                // 嘗試匹配手指骨骼
+                // Try to match finger bones
                 fingerBonePatterns.forEach((fingerBones, fingerIndex) => {
                     fingerBones.forEach((expectedName, jointIndex) => {
                         if (boneName === expectedName) {
@@ -256,29 +256,29 @@ class Hand3D {
                     });
                 });
                 
-                // 也保存所有骨骼以便調試
+                // Also save all bones for debugging
                 this.bones[boneName] = child;
             }
         });
     }
     
     createFallbackModel() {
-        // 如果GLB載入失敗，創建簡化的手部模型
+        // If GLB load fails, create a simplified hand model
         this.handModel = new THREE.Group();
         
-        // 創建手掌
+        // Create palm
         this.createPalm();
         
-        // 創建五根手指
+        // Create five fingers
         this.createFingers();
         
         this.scene?.add(this.handModel);
         
-        console.log('使用備用手部模型');
+        console.log('Using fallback hand model');
     }
     
     createPalm() {
-        // 創建機械手掌的主體
+        // Create the mechanical palm body
         const palmGeometry = new THREE.BoxGeometry(2.4, 0.6, 3.0);
         const palmMaterial = new THREE.MeshPhysicalMaterial({ 
             color: 0x4a5568,
@@ -293,12 +293,12 @@ class Hand3D {
         palm.receiveShadow = true;
         this.handModel?.add(palm);
         
-        // 添加機械手腕
+        // Add mechanical wrist
         this.createRobotWrist();
     }
     
     createRobotWrist() {
-        // 機械手腕主體
+        // Mechanical wrist body
         const wristGeometry = new THREE.CylinderGeometry(0.9, 1.0, 1.8, 12);
         const wristMaterial = new THREE.MeshPhysicalMaterial({ 
             color: 0x2d3748,
@@ -313,13 +313,13 @@ class Hand3D {
     }
     
     createFingers() {
-        // 左手手指配置 (finger1=拇指, finger2=食指, finger3=中指, finger4=無名指, finger5=小指)
+        // Left hand finger config (finger1=thumb, finger2=index, finger3=middle, finger4=ring, finger5=pinky)
         const fingerConfigs = [
-            { name: 'thumb', position: [1.6, 0, 0.2], rotation: [Math.PI / 2, 0, 0.6], scale: [0.9, 0.9, 0.8] },    // finger1: 拇指 (向外展開)
-            { name: 'index', position: [0.7, 0, 1.5], rotation: [Math.PI / 2, 0, 0], scale: [1, 1, 1] },            // finger2: 食指
-            { name: 'middle', position: [0, 0, 1.5], rotation: [Math.PI / 2, 0, 0], scale: [1, 1, 1.1] },           // finger3: 中指
-            { name: 'ring', position: [-0.7, 0, 1.5], rotation: [Math.PI / 2, 0, 0], scale: [1, 1, 0.95] },         // finger4: 無名指
-            { name: 'pinky', position: [-1.3, 0, 1.5], rotation: [Math.PI / 2, 0, -0.1], scale: [0.8, 0.8, 0.8] }  // finger5: 小指
+            { name: 'thumb', position: [1.6, 0, 0.2], rotation: [Math.PI / 2, 0, 0.6], scale: [0.9, 0.9, 0.8] },    // finger1: thumb (spread outward)
+            { name: 'index', position: [0.7, 0, 1.5], rotation: [Math.PI / 2, 0, 0], scale: [1, 1, 1] },            // finger2: index
+            { name: 'middle', position: [0, 0, 1.5], rotation: [Math.PI / 2, 0, 0], scale: [1, 1, 1.1] },           // finger3: middle
+            { name: 'ring', position: [-0.7, 0, 1.5], rotation: [Math.PI / 2, 0, 0], scale: [1, 1, 0.95] },         // finger4: ring
+            { name: 'pinky', position: [-1.3, 0, 1.5], rotation: [Math.PI / 2, 0, -0.1], scale: [0.8, 0.8, 0.8] }  // finger5: pinky
         ];
         
         fingerConfigs.forEach((config, index) => {
@@ -342,7 +342,7 @@ class Hand3D {
         const fingerGroup = new THREE.Group();
         fingerGroup.name = name;
         
-        // 根據手指類型調整關節配置
+        // Adjust joint config based on finger type
         let joints;
         if (name === 'thumb') {
             joints = [
@@ -350,7 +350,7 @@ class Hand3D {
                 { length: 0.7, radius: 0.13, type: 'middle' },
                 { length: 0.5, radius: 0.11, type: 'tip' }
             ];
-        } else if (name === 'pinky') {
+        } else if (name === 'pinky') {  // no change needed
             joints = [
                 { length: 0.6, radius: 0.09, type: 'base' },
                 { length: 0.5, radius: 0.08, type: 'middle' },
@@ -368,7 +368,7 @@ class Hand3D {
         const jointMeshes: THREE.Group[] = [];
         
         joints.forEach((joint, jointIndex) => {
-            // 創建機械手指關節
+            // Create mechanical finger joint
             const jointPivot = this.createRobotJoint(joint, jointIndex, joints.length);
             jointPivot.position.y = currentY;
             
@@ -378,7 +378,7 @@ class Hand3D {
             currentY += joint.length;
         });
         
-        // 儲存關節引用以便動畫
+        // Store joint references for animation
         // @ts-ignore
         fingerGroup.joints = jointMeshes;
         
@@ -388,7 +388,7 @@ class Hand3D {
     createRobotJoint(joint: any, jointIndex: number, totalJoints: number) {
         const jointPivot = new THREE.Group();
         
-        // 主要關節材質
+        // Main joint material
         const jointMaterial = new THREE.MeshPhysicalMaterial({ 
             color: jointIndex === 0 ? 0x4a5568 : 0x2d3748,
             metalness: 0.9,
@@ -396,7 +396,7 @@ class Hand3D {
             clearcoat: 0.3
         });
         
-        // 創建機械關節主體
+        // Create mechanical joint body
         const mainGeometry = new THREE.CylinderGeometry(
             joint.radius * 0.9, joint.radius, joint.length * 0.8, 8
         );
@@ -412,13 +412,13 @@ class Hand3D {
     updateFingerBending(fingerIndex: number, value: number) {
         if (fingerIndex < 0 || fingerIndex >= 5) return;
 
-        // 現在value是弯曲度值（0=伸直，正值=彎曲）
-        // 將弯曲度值映射到角度，假設最大弯曲度為300對應90度
+        // Now value is the bend amount (0=extended, positive=bent)
+        // Map bend value to angle; assume max bend 300 corresponds to 90 degrees
         const maxBendValue = 300;
         const normalizedValue = Math.max(0, Math.min(value / maxBendValue, 1));
-        const bendAngle = normalizedValue * Math.PI / 2; // 0-90度轉換為弧度
+        const bendAngle = normalizedValue * Math.PI / 2; // 0-90 degrees converted to radians
         
-        // 如果有rigged模型的骨骼
+        // If rigged model bones exist
         if (this.bones[fingerIndex] && Array.isArray(this.bones[fingerIndex])) {
             this.bones[fingerIndex].forEach((bone, jointIndex) => {
                 if (bone && bone.rotation) {
@@ -427,7 +427,7 @@ class Hand3D {
                 }
             });
         }
-        // 如果是備用模型
+        // If fallback model
         else if (this.handModel && this.handModel.children) {
             const fingerNames = ['thumb', 'index', 'middle', 'ring', 'pinky'];
             const finger = this.handModel.children.find(child => 
@@ -437,10 +437,10 @@ class Hand3D {
             // @ts-ignore
             if (finger && finger.joints) {
                 // @ts-ignore
-                // 修改：使用負角度，讓手指在水平面上向內彎曲
+                // Fix: use negative angle so fingers bend inward on the horizontal plane
                 finger.joints.forEach((joint, jointIndex) => {
                     const jointBend = bendAngle * (jointIndex + 1) / (finger as any).joints.length;
-                    joint.rotation.x = -jointBend; // 改為負角度，向內彎曲
+                    joint.rotation.x = -jointBend; // negative angle, bend inward
                 });
             }
         }
@@ -451,14 +451,14 @@ class Hand3D {
     updateHandRotation(imuData: any) {
         if (!this.handModel) return;
         
-        // 使用加速度計數據計算手部傾斜
+        // Use accelerometer data to calculate hand tilt
         const { x, y, z } = imuData.accelerometer;
         
-        // 計算旋轉角度
+        // Calculate rotation angles
         const rotationX = Math.atan2(y, Math.sqrt(x * x + z * z));
         const rotationZ = Math.atan2(x, Math.sqrt(y * y + z * z));
         
-        // 平滑旋轉更新
+        // Smooth rotation update
         this.handModel.rotation.x = THREE.MathUtils.lerp(
             this.handModel.rotation.x, rotationX, 0.1
         );
@@ -470,14 +470,14 @@ class Hand3D {
     }
     
     updateFromSensorData(sensorData: any) {
-        // 更新手指彎曲
+        // Update finger bending
         if (sensorData.fingers) {
             sensorData.fingers.forEach((value: number, index: number) => {
                 this.updateFingerBending(index, value);
             });
         }
         
-        // 更新手部旋轉
+        // Update hand rotation
         if (sensorData.accelerometer) {
             this.updateHandRotation({
                 accelerometer: sensorData.accelerometer,
@@ -488,12 +488,12 @@ class Hand3D {
     }
     
     addEventListeners() {
-        // 窗口大小調整
+        // Window resize
         window.addEventListener('resize', () => {
             this.onWindowResize();
         });
         
-        // 鼠標控制
+        // Mouse control
         let isMouseDown = false;
         let mouseX = 0;
         let mouseY = 0;
@@ -522,7 +522,7 @@ class Hand3D {
                 isMouseDown = false;
             });
             
-            // 滾輪縮放
+            // Scroll to zoom
             this.renderer.domElement.addEventListener('wheel', (event) => {
                 const delta = event.deltaY * 0.001;
                 if (this.camera) {
@@ -546,18 +546,18 @@ class Hand3D {
     animate() {
         this.animationId = requestAnimationFrame(() => this.animate());
         
-        // 更新動畫混合器
+        // Update animation mixer
         if (this.mixer) {
-            this.mixer.update(0.016); // 假設60fps
+            this.mixer.update(0.016); // assuming 60fps
         }
         
-        // 機械手動畫效果
+        // Mechanical hand animation effects
         const time = Date.now() * 0.001;
         if (this.handModel) {
-            // 機械手輕微浮動
+            // Mechanical hand subtle floating
             this.handModel.position.y = Math.sin(time * 1.2) * 0.03 - 1;
             
-            // 機械手微旋轉
+            // Mechanical hand slight rotation
             this.handModel.rotation.y += Math.sin(time * 0.3) * 0.001;
         }
         

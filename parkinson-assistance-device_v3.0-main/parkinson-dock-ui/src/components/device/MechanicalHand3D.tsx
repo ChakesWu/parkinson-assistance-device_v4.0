@@ -19,19 +19,19 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
   const animationRef = useRef<number>(0);
   const [loading, setLoading] = useState(true);
 
-  // 創建基本幾何體的手部模型
+  // Create a basic geometry hand model
   const createSimpleHandModel = () => {
     if (!sceneRef.current) return;
 
     const handGroup = new THREE.Group();
     handGroupRef.current = handGroup;
 
-    // 設置手部初始旋轉，確保手掌和手指在同一水平面
+    // Set initial hand rotation so palm and fingers are on the same horizontal plane
     handGroup.rotation.x = 0;
     handGroup.rotation.y = 0;
     handGroup.rotation.z = 0;
 
-    // 創建手掌
+    // Create palm
     const palmGeometry = new THREE.BoxGeometry(3, 0.8, 4);
     const palmMaterial = new THREE.MeshPhysicalMaterial({
       color: 0x6b7280,
@@ -44,7 +44,7 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
     palm.receiveShadow = true;
     handGroup.add(palm);
 
-    // 創建手腕
+    // Create wrist
     const wristGeometry = new THREE.CylinderGeometry(1.2, 1.4, 2, 12);
     const wristMaterial = new THREE.MeshPhysicalMaterial({
       color: 0x4b5563,
@@ -56,7 +56,7 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
     wrist.castShadow = true;
     handGroup.add(wrist);
 
-    // 創建手指
+    // Create fingers
     const fingerConfigs = [
       { name: 'thumb', position: [-1.8, 0.4, 1.2], scale: 0.8, joints: 3 },
       { name: 'index', position: [-0.9, 0.4, 2.2], scale: 1.0, joints: 3 },
@@ -74,7 +74,7 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
       handGroup.add(fingerGroup);
     });
 
-    // 添加LED燈
+    // Add LED lights
     const ledPositions = [
       [-1, 0.5, 0.5],
       [0, 0.5, 1],
@@ -97,7 +97,7 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
     setLoading(false);
   };
 
-  // 創建單根手指
+  // Create a single finger
   const createFinger = (config: any) => {
     const fingerGroup = new THREE.Group();
     fingerGroup.name = config.name;
@@ -111,7 +111,7 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
     let currentY = 0;
     
     jointSizes.forEach((joint, jointIndex) => {
-      // 關節主體
+      // Joint body
       const jointGeometry = new THREE.CylinderGeometry(
         joint.radius, joint.radius * 0.9, joint.length, 8
       );
@@ -125,12 +125,12 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
       jointMesh.position.y = joint.length / 2;
       jointMesh.castShadow = true;
       
-      // 關節組（用於旋轉）
+      // Joint group (for rotation)
       const jointPivot = new THREE.Group();
       jointPivot.position.y = currentY;
       jointPivot.add(jointMesh);
       
-      // 添加關節連接器
+      // Add joint connector
       if (jointIndex < jointSizes.length - 1) {
         const connectorGeometry = new THREE.CylinderGeometry(
           joint.radius * 1.1, joint.radius * 1.1, 0.1, 8
@@ -145,7 +145,7 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
         jointPivot.add(connector);
       }
       
-      // 添加LED指示燈
+      // Add LED indicator light
       const ledGeometry = new THREE.SphereGeometry(0.04, 8, 8);
       const ledColor = jointIndex === 0 ? 0x4444ff : 0x44ff44;
       const ledMaterial = new THREE.MeshStandardMaterial({
@@ -157,7 +157,7 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
       led.position.set(joint.radius * 0.8, joint.length * 0.5, 0);
       jointPivot.add(led);
       
-      // 添加指尖傳感器（最後一個關節）
+      // Add fingertip sensor (last joint)
       if (jointIndex === jointSizes.length - 1) {
         const tipGeometry = new THREE.SphereGeometry(joint.radius * 0.8, 8, 8);
         const tipMaterial = new THREE.MeshStandardMaterial({
@@ -176,30 +176,29 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
     return fingerGroup;
   };
 
-  // 更新手指彎曲
+  // Update finger bending
   const updateFingerBending = (fingerIndex: number, value: number) => {
     if (fingerIndex < 0 || fingerIndex >= 5) return;
     const fingerGroup = fingerGroupsRef.current[fingerIndex];
     if (!fingerGroup) return;
 
-    // 現在value是弯曲度值（0=伸直，正值=彎曲）
+    // Now value is the bend value (0=extended, positive=bent)
     const maxBendValue = 300;
     const normalizedValue = Math.max(0, Math.min(value / maxBendValue, 1));
-    const bendAngle = normalizedValue * Math.PI / 2; // 0-90度
+    const bendAngle = normalizedValue * Math.PI / 2; // 0-90 degrees
     
-    // 更新每個關節
-    // 修改：使用正角度，讓手指在水平面上彎曲
+    // Update each joint
     fingerGroup.children.forEach((joint, jointIndex) => {
       const jointBend = bendAngle * (jointIndex + 1) / fingerGroup.children.length;
-      joint.rotation.x = jointBend; // 改為正角度，水平面彎曲
+      joint.rotation.x = jointBend; // positive angle, bend on horizontal plane
     });
   };
 
-  // 更新手部旋轉
+  // Update hand rotation
   const updateHandRotation = (rot: { x: number; y: number; z: number }) => {
     if (!handGroupRef.current) return;
     
-    // 平滑旋轉更新
+    // Smooth rotation update
     handGroupRef.current.rotation.x = THREE.MathUtils.lerp(
       handGroupRef.current.rotation.x, rot.x, 0.1
     );
@@ -209,16 +208,16 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
     handGroupRef.current.rotation.y = rot.y;
   };
 
-  // 初始化場景
+  // Initialize scene
   useEffect(() => {
     if (!mountRef.current) return;
 
-    // 初始化場景
+    // Initialize scene
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xffffff);
     sceneRef.current = scene;
 
-    // 初始化相機
+    // Initialize camera
     const camera = new THREE.PerspectiveCamera(
       60,
       mountRef.current.clientWidth / mountRef.current.clientHeight,
@@ -229,7 +228,7 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
     camera.lookAt(0, 0, 0);
     cameraRef.current = camera;
 
-    // 初始化渲染器
+    // Initialize renderer
     const renderer = new THREE.WebGLRenderer({ 
       antialias: true,
       alpha: false
@@ -244,7 +243,7 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
     mountRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    // 添加光源
+    // Add lights
     const ambientLight = new THREE.AmbientLight(0x808080, 0.8);
     scene.add(ambientLight);
     
@@ -271,14 +270,14 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
     frontLight.position.set(0, 0, 10);
     scene.add(frontLight);
 
-    // 創建機械手模型
+    // Create mechanical hand model
     createSimpleHandModel();
 
-    // 動畫循環
+    // Animation loop
     const animate = () => {
       animationRef.current = requestAnimationFrame(animate);
       
-      // 添加輕微浮動效果
+      // Add subtle floating effect
       if (handGroupRef.current) {
         handGroupRef.current.position.y = Math.sin(Date.now() * 0.001 * 1.2) * 0.05;
       }
@@ -287,7 +286,7 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
     };
     animate();
 
-    // 窗口大小調整
+    // Handle window resize
     const handleResize = () => {
       if (!cameraRef.current || !rendererRef.current || !mountRef.current) return;
       cameraRef.current.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
@@ -311,14 +310,14 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
     };
   }, []);
 
-  // 更新手指彎曲
+  // Update finger bending
   useEffect(() => {
     fingerBend.forEach((value, index) => {
       updateFingerBending(index, value);
     });
   }, [fingerBend]);
 
-  // 更新手部旋轉
+  // Update hand rotation
   useEffect(() => {
     updateHandRotation(rotation);
   }, [rotation]);
@@ -339,7 +338,7 @@ const MechanicalHand3D: React.FC<MechanicalHand3DProps> = ({
             fontSize: '14px'
           }}
         >
-          加載機械手模型中...
+          Loading mechanical hand model...
         </div>
       )}
     </div>

@@ -20,19 +20,19 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
   });
   const [error, setError] = useState<string | null>(null);
   const [deviceName, setDeviceName] = useState<string | null>(null);
-  const [showAllDevices, setShowAllDevices] = useState(false); // 高级：显示全部设备
+  const [showAllDevices, setShowAllDevices] = useState(false); // Advanced: show all devices
 
-  // 初始化相关状态
+  // Initialization-related state
   const [isInitializing, setIsInitializing] = useState(false);
   const [initializationComplete, setInitializationComplete] = useState(false);
   const [fingerBaselines, setFingerBaselines] = useState<number[]>([0, 0, 0, 0, 0]);
 
-  // 電位器方向設置
+  // Potentiometer direction setting
   const [potentiometerReversed, setPotentiometerReversed] = useState(false);
 
   const bluetoothManagerRef = useRef<BluetoothManager | null>(null);
 
-  // AI分析结果状态
+  // AI analysis result state
   const [aiAnalysisData, setAiAnalysisData] = useState({
     analysisCount: 0,
     parkinsonLevel: 0,
@@ -43,14 +43,14 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
     isAnalyzing: false
   });
 
-  // 訓練確認彈窗
+  // Training confirmation modal
   const [showTrainingConfirm, setShowTrainingConfirm] = useState(false);
 
-  // 初始化蓝牙管理器
+  // Initialize Bluetooth manager
   useEffect(() => {
     bluetoothManagerRef.current = new BluetoothManager();
     
-    // 设置回调函数
+    // Set up callback functions
     bluetoothManagerRef.current.onDataReceived = handleDataReceived;
     bluetoothManagerRef.current.onAIResultReceived = handleAIResult;
     bluetoothManagerRef.current.onConnectionStatusChanged = handleConnectionStatusChanged;
@@ -59,19 +59,19 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
       if (bluetoothManagerRef.current?.getConnectionStatus().isConnected) {
         bluetoothManagerRef.current.disconnect();
       }
-      // 取消订阅分析记录事件
+      // Unsubscribe from analysis record events
       unsubscribe?.();
     };
   }, []);
 
-  // 订阅本地/web分析保存事件：当来源为 web-analysis 时也弹出训练确认
+  // Subscribe to local/web analysis save events: also show training confirmation when source is web-analysis
   const unsubscribeRef = useRef<() => void | null>(null);
   const unsubscribe = unsubscribeRef.current as (() => void) | null;
   useEffect(() => {
     const off = analysisRecordService.subscribe((record: AnalysisRecord) => {
       try {
         if (record.source === 'web-analysis') {
-          // 同步到页面的 AI 状态（用于弹窗显示文案）
+          // Sync to page AI state (for modal display text)
           setAiAnalysisData(prev => ({
             ...prev,
             analysisCount: record.analysisCount,
@@ -85,29 +85,29 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
           setShowTrainingConfirm(true);
         }
       } catch (e) {
-        console.error('订阅 web-analysis 触发训练弹窗失败', e);
+        console.error('Failed to trigger training modal from web-analysis subscription', e);
       }
     });
     unsubscribeRef.current = off;
     return () => { try { off?.(); } catch {} };
   }, []);
 
-  // 检查浏览器是否支持Web Bluetooth API
+  // Check if browser supports Web Bluetooth API
   const isBluetoothSupported = () => {
     return bluetoothManagerRef.current?.isBluetoothSupported() || false;
   };
 
-  // 处理数据接收
+  // Handle data received
   const handleDataReceived = (data: SensorData) => {
-    // 调整手指方向
+    // Adjust finger direction
     const processedData = adjustFingerDirection(data);
 
     setSensorData(processedData);
     onDataReceived?.(processedData);
-    console.log('蓝牙数据接收:', processedData);
+    console.log('Bluetooth data received:', processedData);
   };
 
-  // 处理AI结果
+  // Handle AI result
   const handleAIResult = (result: AIResult) => {
     setAiAnalysisData(prev => ({
       ...prev,
@@ -120,14 +120,14 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
       isAnalyzing: false
     }));
 
-    // 注意：AI分析记录的保存现在由BluetoothManager处理，避免重复保存
-    console.log('蓝牙AI分析结果已接收:', result);
+    // Note: AI analysis record saving is now handled by BluetoothManager to avoid duplicate saves
+    console.log('Bluetooth AI analysis result received:', result);
 
-    // AI 完成後彈出訓練確認
+    // Show training confirmation after AI completes
     setShowTrainingConfirm(true);
   };
 
-  // 处理连接状态变化
+  // Handle connection status changes
   const handleConnectionStatusChanged = (connected: boolean, type: string) => {
     setIsConnected(connected);
     setIsConnecting(false);
@@ -137,15 +137,15 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
       setDeviceName(status?.deviceName || null);
       setError(null);
 
-      // 蓝牙重连后重置初始化状态并开始新的初始化
-      console.log('🔄 蓝牙设备已连接，开始重新初始化...');
-      console.log('📋 请确保手指完全伸直，准备进行基线校准');
+      // Reset initialization state after Bluetooth reconnect and start new initialization
+      console.log('🔄 Bluetooth device connected, starting re-initialization...');
+      console.log('📋 Please ensure fingers are fully extended, preparing for baseline calibration');
 
       setIsInitializing(false);
       setInitializationComplete(false);
       setFingerBaselines([0, 0, 0, 0, 0]);
 
-      // 延迟开始初始化，确保连接稳定
+      // Delay initialization start to ensure stable connection
       setTimeout(() => {
         startWebInitialization();
       }, 1000);
@@ -164,10 +164,10 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
     }
   };
 
-  // 连接蓝牙设备
+  // Connect to Bluetooth device
   const connectToBluetooth = async () => {
     if (!isBluetoothSupported()) {
-      setError('您的瀏覽器不支持Web Bluetooth API，請使用Chrome或Edge瀏覽器');
+      setError('Your browser does not support the Web Bluetooth API. Please use Chrome or Edge.');
       return;
     }
 
@@ -177,31 +177,31 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
     try {
       await bluetoothManagerRef.current?.connect({ acceptAll: showAllDevices });
     } catch (err) {
-      console.error('蓝牙连接错误:', err);
-      setError(`蓝牙连接失败: ${(err as Error).message}`);
+      console.error('Bluetooth connection error:', err);
+      setError(`Bluetooth connection failed: ${(err as Error).message}`);
       setIsConnecting(false);
     }
   };
 
-  // 断开蓝牙连接
+  // Disconnect Bluetooth
   const disconnectBluetooth = async () => {
     try {
       await bluetoothManagerRef.current?.disconnect();
     } catch (err) {
-      console.error('断开蓝牙连接错误:', err);
+      console.error('Bluetooth disconnect error:', err);
     }
   };
 
-  // 发送命令
+  // Send command
   const sendCommand = async (command: string) => {
     try {
       await bluetoothManagerRef.current?.sendCommand(command);
     } catch (err) {
-      setError(`发送命令失败: ${(err as Error).message}`);
+      setError(`Send command failed: ${(err as Error).message}`);
     }
   };
 
-  // 获取帕金森等级描述
+  // Get Parkinson level description
   const getParkinsonLevelDescription = (level: number): string => {
     switch (level) {
       case 1: return 'Normal';
@@ -213,7 +213,7 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
     }
   };
 
-  // 获取训练建议
+  // Get training recommendation
   const getRecommendation = (level: number): string => {
     switch (level) {
       case 1: return 'Maintain current training intensity';
@@ -225,23 +225,23 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
     }
   };
 
-  // 获取推荐阻力
+  // Get recommended resistance
   const getRecommendedResistance = (level: number): number => {
-    return Math.round(30 + (level - 1) * 30); // 30-150度范围
+    return Math.round(30 + (level - 1) * 30); // range 30-150 degrees
   };
 
-  // 網頁端初始化函數
+  // Web-side initialization function
   const startWebInitialization = () => {
-    console.log('🔄 开始蓝牙端手指基线初始化...');
-    console.log('📋 请保持手指完全伸直，3秒后开始收集基线数据');
+    console.log('🔄 Starting Bluetooth-side finger baseline initialization...');
+    console.log('📋 Please keep fingers fully extended, collecting baseline data in 3 seconds');
 
     setIsInitializing(true);
     setInitializationComplete(false);
 
-    // 3秒倒计时
+    // 3-second countdown
     let countdown = 3;
     const countdownInterval = setInterval(() => {
-      console.log(`⏰ 倒计时: ${countdown} 秒...`);
+      console.log(`⏰ Countdown: ${countdown} s...`);
       countdown--;
       if (countdown < 0) {
         clearInterval(countdownInterval);
@@ -250,28 +250,28 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
     }, 1000);
   };
 
-  // 收集基线数据
+  // Collect baseline data
   const collectBaseline = () => {
-    console.log('📊 开始收集手指伸直基线数据...');
+    console.log('📊 Starting to collect finger extension baseline data...');
 
-    const baselineData: number[][] = [[], [], [], [], []]; // 5个手指的数据收集
-    const sampleCount = 30; // 收集30个样本（约3秒）
+    const baselineData: number[][] = [[], [], [], [], []]; // data collection for 5 fingers
+    const sampleCount = 30; // collect 30 samples (~3 seconds)
     let currentSample = 0;
 
     const collectInterval = setInterval(() => {
       if (sensorData && currentSample < sampleCount) {
-        // 收集当前的原始数据作为基线
+        // Collect current raw data as baseline
         sensorData.fingers.forEach((value, index) => {
           baselineData[index].push(value);
         });
 
         currentSample++;
-        console.log(`📈 收集进度: ${currentSample}/${sampleCount}`);
+        console.log(`📈 Collection progress: ${currentSample}/${sampleCount}`);
 
       } else if (currentSample >= sampleCount) {
         clearInterval(collectInterval);
 
-        // 计算平均基线值
+        // Calculate average baseline values
         const newBaselines = baselineData.map(fingerData => {
           const sum = fingerData.reduce((a, b) => a + b, 0);
           return sum / fingerData.length;
@@ -281,38 +281,38 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
         setIsInitializing(false);
         setInitializationComplete(true);
 
-        console.log('✅ 蓝牙端初始化完成！');
-        console.log('📊 手指伸直基线值:', newBaselines);
-        console.log('🎯 3D模型已重置为伸直状态');
-        console.log('👆 现在可以开始手指弯曲检测');
+        console.log('✅ Bluetooth-side initialization complete!');
+        console.log('📊 Finger extension baseline values:', newBaselines);
+        console.log('🎯 3D model reset to extended state');
+        console.log('👆 Finger bend detection can now begin');
 
-        // 通知3D模型重置为伸直状态
+        // Notify 3D model to reset to extended state
         onDataReceived?.({
-          fingers: [0, 0, 0, 0, 0], // 重置为伸直状态
+          fingers: [0, 0, 0, 0, 0], // reset to extended state
           accel: { x: 0, y: 0, z: 0 },
           gyro: { x: 0, y: 0, z: 0 },
           mag: { x: 0, y: 0, z: 0 }
         });
       }
-    }, 100); // 每100ms收集一次
+    }, 100); // collect once every 100ms
   };
 
-  // 调整手指方向 - 直接反轉數據
+  // Adjust finger direction - directly invert data
   const adjustFingerDirection = (data: SensorData): SensorData => {
     const adjustedFingers = data.fingers.map((value, index) => {
       let adjustedValue = value;
 
-      // 如果設置為反向電位器，將彎曲度反轉
+      // If potentiometer is set to reversed, invert the bend value
       if (potentiometerReversed) {
-        // 假設正常情況下，彎曲度範圍是0-200
-        // 反轉公式：新值 = 最大值 - 原值
+        // Assuming the normal bend range is 0-200
+        // Inversion formula: new value = max value - original value
         const maxValue = 200;
         adjustedValue = Math.max(0, maxValue - value);
       }
 
-      // 小拇指敏感度增强 (index 4 是小拇指)
+      // Pinky sensitivity enhancement (index 4 is the pinky)
       if (index === 4) {
-        return adjustedValue * 1.5; // 增加50%敏感度
+        return adjustedValue * 1.5; // increase sensitivity by 50%
       }
 
       return adjustedValue;
@@ -332,7 +332,7 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold">蓝牙连接</h2>
+        <h2 className="text-xl font-semibold">Bluetooth Connection</h2>
         <p className="text-gray-600 dark:text-gray-300">ParkinsonDevice v2.0</p>
       </div>
 
@@ -344,20 +344,20 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
 
       <div className="space-y-4">
         <div className="flex items-center justify-between p-4 bg-gray-100 dark:bg-neutral-700 rounded-lg">
-          <span>连接状态</span>
+          <span>Connection Status</span>
           <span className={`font-semibold ${isConnected ? 'text-blue-500' : isConnecting ? 'text-yellow-500' : 'text-gray-500'}`}>
-            {isConnected ? '已连接' : isConnecting ? '连接中...' : '未连接'}
+            {isConnected ? 'Connected' : isConnecting ? 'Connecting...' : 'Not Connected'}
           </span>
         </div>
 
         {deviceName && (
           <div className="flex items-center justify-between p-4 bg-gray-100 dark:bg-neutral-700 rounded-lg">
-            <span>设备名称</span>
+            <span>Device Name</span>
             <span className="font-semibold">{deviceName}</span>
           </div>
         )}
 
-        {/* 高级选项：显示全部设备 */}
+        {/* Advanced option: show all devices */}
         <div className="flex items-center justify-between p-4 bg-gray-100 dark:bg-neutral-700 rounded-lg">
           <label className="flex items-center gap-3">
             <input
@@ -366,9 +366,9 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
               checked={showAllDevices}
               onChange={(e) => setShowAllDevices(e.target.checked)}
             />
-            <span className="text-sm">显示全部设备（高级）</span>
+            <span className="text-sm">Show All Devices (Advanced)</span>
           </label>
-          <span className="text-xs text-gray-500">默认按设备名过滤；勾选后可从所有BLE设备中选择</span>
+          <span className="text-xs text-gray-500">Filters by device name by default; check to select from all BLE devices</span>
         </div>
       </div>
 
@@ -379,14 +379,14 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
             disabled={isConnecting || !isBluetoothSupported()}
             className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg transition"
           >
-            {isConnecting ? '连接中...' : '连接蓝牙设备'}
+            {isConnecting ? 'Connecting...' : 'Connect Bluetooth Device'}
           </button>
         ) : (
           <button
             onClick={disconnectBluetooth}
             className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-lg transition"
           >
-            断开连接
+            Disconnect
           </button>
         )}
 
@@ -395,13 +395,13 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
           disabled={!isConnected}
           onClick={() => sendCommand('START')}
         >
-          开始数据采集
+          Start Data Collection
         </button>
       </div>
 
-      {/* 電位器方向設置 */}
+      {/* Potentiometer Direction Settings */}
       <div className="mt-4 p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg">
-        <h3 className="text-sm font-medium mb-2">電位器設置</h3>
+        <h3 className="text-sm font-medium mb-2">Potentiometer Settings</h3>
         <div className="flex items-center space-x-3">
           <label className="flex items-center cursor-pointer">
             <input
@@ -418,43 +418,43 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
               }`} />
             </div>
             <span className="ml-3 text-sm">
-              反向電位器 {potentiometerReversed ? '(減少=彎曲)' : '(增加=彎曲)'}
+              Reverse Potentiometer {potentiometerReversed ? '(Decrease = Bend)' : '(Increase = Bend)'}
             </span>
           </label>
         </div>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          如果手指彎曲方向相反，請開啟此選項
+          If the finger bend direction is reversed, enable this option.
         </p>
       </div>
 
-      {/* 控制命令按钮 */}
+      {/* Control command buttons */}
       {isConnected && (
         <div className="mt-6">
-          <h3 className="text-lg font-semibold mb-4">设备控制</h3>
+          <h3 className="text-lg font-semibold mb-4">Device Control</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <button
               onClick={() => sendCommand('STOP')}
               className="bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded-lg transition text-sm"
             >
-              停止采集
+              Stop Collection
             </button>
             <button
               onClick={() => sendCommand('CALIBRATE')}
               className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-3 rounded-lg transition text-sm"
             >
-              校准传感器
+              Calibrate Sensor
             </button>
             <button
               onClick={() => sendCommand('AUTO')}
               className="bg-green-500 hover:bg-green-600 text-white py-2 px-3 rounded-lg transition text-sm"
             >
-              AI分析
+              AI Analysis
             </button>
             <button
               onClick={() => sendCommand('STATUS')}
               className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-lg transition text-sm"
             >
-              查询状态
+              Query Status
             </button>
           </div>
         </div>
@@ -462,18 +462,18 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
 
       {isConnected && (
         <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4">即时传感器数据</h3>
+          <h3 className="text-lg font-semibold mb-4">Live Sensor Data</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">手指弯曲度</h4>
+              <h4 className="font-medium mb-2">Finger Bend</h4>
               {sensorData.fingers.map((value, index) => {
                 const percentage = Math.min(100, Math.max(0, (value / 1023) * 100));
                 const displayValue = Math.round(percentage);
 
                 return (
                   <div key={index} className="flex items-center justify-between mb-2">
-                    <span className="text-sm">手指{index + 1}:</span>
+                    <span className="text-sm">Finger {index + 1}:</span>
                     <div className="flex items-center space-x-2">
                       <div className="w-20 bg-gray-200 rounded-full h-2">
                         <div 
@@ -489,7 +489,7 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
             </div>
             
             <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">加速度计 (g)</h4>
+              <h4 className="font-medium mb-2">Accelerometer (g)</h4>
               <div className="space-y-2">
                 <div>X: {sensorData.accel.x.toFixed(2)}</div>
                 <div>Y: {sensorData.accel.y.toFixed(2)}</div>
@@ -498,7 +498,7 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
             </div>
             
             <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">陀螺仪 (deg/s)</h4>
+              <h4 className="font-medium mb-2">Gyroscope (deg/s)</h4>
               <div className="space-y-2">
                 <div>X: {sensorData.gyro.x.toFixed(2)}</div>
                 <div>Y: {sensorData.gyro.y.toFixed(2)}</div>
@@ -507,23 +507,23 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
             </div>
           </div>
 
-          {/* AI分析状态显示 */}
+          {/* AI analysis status display */}
           {(aiAnalysisData.analysisCount > 0 || aiAnalysisData.isAnalyzing) && (
             <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-4">AI分析结果</h3>
+              <h3 className="text-lg font-semibold mb-4">AI Analysis Results</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
-                  <h4 className="font-medium mb-2">分析状态</h4>
+                  <h4 className="font-medium mb-2">Analysis Status</h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span>分析次数:</span>
+                      <span>Analysis Count:</span>
                       <span className="font-medium">{aiAnalysisData.analysisCount}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>状态:</span>
+                      <span>Status:</span>
                       <span className={`font-medium ${aiAnalysisData.isAnalyzing ? 'text-blue-600' : 'text-green-600'}`}>
-                        {aiAnalysisData.isAnalyzing ? '分析中...' : '已完成'}
+                        {aiAnalysisData.isAnalyzing ? 'Analyzing...' : 'Completed'}
                       </span>
                     </div>
                   </div>
@@ -531,19 +531,19 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
 
                 {aiAnalysisData.parkinsonLevel > 0 && (
                   <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
-                    <h4 className="font-medium mb-2">分析结果</h4>
+                    <h4 className="font-medium mb-2">Analysis Result</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>等级:</span>
+                        <span>Level:</span>
                         <span className="font-medium">{aiAnalysisData.parkinsonLevel} ({getParkinsonLevelDescription(aiAnalysisData.parkinsonLevel)})</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>置信度:</span>
+                        <span>Confidence:</span>
                         <span className="font-medium">{aiAnalysisData.confidence.toFixed(1)}%</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>建议阻力:</span>
-                        <span className="font-medium">{getRecommendedResistance(aiAnalysisData.parkinsonLevel)}度</span>
+                        <span>Recommended Resistance:</span>
+                        <span className="font-medium">{getRecommendedResistance(aiAnalysisData.parkinsonLevel)}°</span>
                       </div>
                     </div>
                   </div>
@@ -552,7 +552,7 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
 
               {aiAnalysisData.parkinsonLevel > 0 && (
                 <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <h4 className="font-medium mb-2 text-blue-800 dark:text-blue-200">训练建议</h4>
+                  <h4 className="font-medium mb-2 text-blue-800 dark:text-blue-200">Training Recommendation</h4>
                   <p className="text-blue-700 dark:text-blue-300">{getRecommendation(aiAnalysisData.parkinsonLevel)}</p>
                 </div>
               )}
@@ -561,16 +561,16 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
         </div>
       )}
 
-      {/* 訓練確認彈窗 */}
+      {/* Training Confirmation Modal */}
       {showTrainingConfirm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 w-full max-w-md shadow-lg">
-            <h4 className="text-lg font-semibold mb-3">開始 20 秒阻力訓練？</h4>
+            <h4 className="text-lg font-semibold mb-3">Start 20-second Resistance Training?</h4>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-              AI 建議等級：{aiAnalysisData.parkinsonLevel}，建議阻力：{getRecommendedResistance(aiAnalysisData.parkinsonLevel)}°
+              AI Recommended Level: {aiAnalysisData.parkinsonLevel}, Recommended Resistance: {getRecommendedResistance(aiAnalysisData.parkinsonLevel)}°
             </p>
             <div className="flex justify-end gap-2">
-              <button className="px-3 py-1 rounded bg-gray-200 dark:bg-neutral-700" onClick={() => setShowTrainingConfirm(false)}>取消</button>
+              <button className="px-3 py-1 rounded bg-gray-200 dark:bg-neutral-700" onClick={() => setShowTrainingConfirm(false)}>Cancel</button>
               <button
                 className="px-3 py-1 rounded bg-blue-600 text-white"
                 onClick={() => {
@@ -579,7 +579,7 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
                   setShowTrainingConfirm(false);
                 }}
               >
-                開始訓練
+                Start Training
               </button>
             </div>
           </div>

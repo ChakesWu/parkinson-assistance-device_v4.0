@@ -19,7 +19,7 @@ export interface UnifiedConnectorProps {
 type ConnectionMode = 'serial' | 'bluetooth';
 
 export default function UnifiedConnector({ onDataReceived }: UnifiedConnectorProps) {
-  // 默认改为蓝牙，适配 Android Chrome 移动端
+  // Default to Bluetooth, for Android Chrome compatibility
   const [connectionMode, setConnectionMode] = useState<ConnectionMode>('bluetooth');
   const [isAnyConnected, setIsAnyConnected] = useState(false);
   const [browserSupport, setBrowserSupport] = useState({
@@ -27,7 +27,7 @@ export default function UnifiedConnector({ onDataReceived }: UnifiedConnectorPro
     bluetooth: false
   });
 
-  // 检查浏览器支持情况
+  // Check browser support
   useEffect(() => {
     const checkSupport = () => {
       const serialSupported = typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'serial' in navigator;
@@ -38,7 +38,7 @@ export default function UnifiedConnector({ onDataReceived }: UnifiedConnectorPro
         bluetooth: bluetoothSupported
       });
 
-      // 如果当前模式不支持，自动切换到支持的模式
+      // If the current mode is not supported, automatically switch to a supported mode
       if (connectionMode === 'serial' && !serialSupported && bluetoothSupported) {
         setConnectionMode('bluetooth');
       } else if (connectionMode === 'bluetooth' && !bluetoothSupported && serialSupported) {
@@ -49,41 +49,41 @@ export default function UnifiedConnector({ onDataReceived }: UnifiedConnectorPro
     checkSupport();
   }, [connectionMode]);
 
-  // 处理数据接收
+  // Handle data received
   const handleDataReceived = (data: Partial<SensorData>) => {
     onDataReceived?.(data);
   };
 
-  // 切换连接模式
+  // Switch connection mode
   const switchConnectionMode = (mode: ConnectionMode) => {
     if (isAnyConnected) {
-      alert('请先断开当前连接再切换模式');
+      alert('Please disconnect the current connection before switching modes.');
       return;
     }
 
     if (mode === 'serial' && !browserSupport.serial) {
-      alert('您的浏览器不支持串口连接，请使用Chrome或Edge浏览器');
+      alert('Your browser does not support serial connection. Please use Chrome or Edge.');
       return;
     }
 
     if (mode === 'bluetooth' && !browserSupport.bluetooth) {
-      alert('您的浏览器不支持蓝牙连接，请使用Chrome或Edge浏览器');
+      alert('Your browser does not support Bluetooth connection. Please use Chrome or Edge.');
       return;
     }
 
     setConnectionMode(mode);
   };
 
-  // 监听连接状态变化
+  // Monitor connection state changes
   const handleConnectionStatusChange = (connected: boolean) => {
     setIsAnyConnected(connected);
   };
 
   return (
     <div className="space-y-6">
-      {/* 连接模式选择器 */}
+      {/* Connection mode selector */}
       <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold mb-4">连接方式选择</h3>
+        <h3 className="text-lg font-semibold mb-4">Select Connection Method</h3>
         
         <div className="flex space-x-4 mb-4">
           <button
@@ -99,9 +99,9 @@ export default function UnifiedConnector({ onDataReceived }: UnifiedConnectorPro
                 : ''
             }`}
           >
-            串口连接
+            Serial Connection
             {!browserSupport.serial && (
-              <span className="ml-2 text-xs">(不支持)</span>
+              <span className="ml-2 text-xs">(Not Supported)</span>
             )}
           </button>
           
@@ -118,37 +118,37 @@ export default function UnifiedConnector({ onDataReceived }: UnifiedConnectorPro
                 : ''
             }`}
           >
-            蓝牙连接
+            Bluetooth Connection
             {!browserSupport.bluetooth && (
-              <span className="ml-2 text-xs">(不支持)</span>
+              <span className="ml-2 text-xs">(Not Supported)</span>
             )}
           </button>
         </div>
 
-        {/* 浏览器支持状态提示 */}
+        {/* Browser support status notice */}
         <div className="text-sm text-gray-600 dark:text-gray-400">
           <div className="flex items-center space-x-4">
             <div className="flex items-center">
               <div className={`w-2 h-2 rounded-full mr-2 ${browserSupport.serial ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span>串口连接: {browserSupport.serial ? '支持' : '不支持'}</span>
+              <span>Serial Connection: {browserSupport.serial ? 'Supported' : 'Not Supported'}</span>
             </div>
             <div className="flex items-center">
               <div className={`w-2 h-2 rounded-full mr-2 ${browserSupport.bluetooth ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span>蓝牙连接: {browserSupport.bluetooth ? '支持' : '不支持'}</span>
+              <span>Bluetooth Connection: {browserSupport.bluetooth ? 'Supported' : 'Not Supported'}</span>
             </div>
           </div>
           
           {(!browserSupport.serial || !browserSupport.bluetooth) && (
             <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
               <p className="text-yellow-800 dark:text-yellow-200">
-                建议使用 Chrome 89+ 或 Edge 89+ 浏览器以获得完整功能支持
+                We recommend Chrome 89+ or Edge 89+ for full feature support.
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* 连接器组件 */}
+      {/* Connector component */}
       {connectionMode === 'serial' ? (
         <div>
           <ArduinoConnector 
@@ -163,13 +163,13 @@ export default function UnifiedConnector({ onDataReceived }: UnifiedConnectorPro
         </div>
       )}
 
-      {/* 连接状态监听 */}
+      {/* Connection state listener */}
       <div className="hidden">
         {connectionMode === 'serial' && (
           <ArduinoConnector 
             onDataReceived={(data) => {
               handleDataReceived(data);
-              // 这里可以添加连接状态监听逻辑
+              // connection status monitoring logic can be added here
             }}
           />
         )}
@@ -177,7 +177,7 @@ export default function UnifiedConnector({ onDataReceived }: UnifiedConnectorPro
           <BluetoothConnector 
             onDataReceived={(data) => {
               handleDataReceived(data);
-              // 这里可以添加连接状态监听逻辑
+              // connection status monitoring logic can be added here
             }}
           />
         )}

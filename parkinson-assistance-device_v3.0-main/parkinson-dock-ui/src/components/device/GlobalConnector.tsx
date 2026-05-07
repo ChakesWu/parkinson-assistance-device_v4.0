@@ -38,7 +38,7 @@ export default function GlobalConnector({
 
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // 電位器方向設置
+  // Potentiometer direction setting
   const [potentiometerReversed, setPotentiometerReversed] = useState(false);
 
   const {
@@ -57,10 +57,10 @@ export default function GlobalConnector({
   } = useGlobalConnection({
     onDataReceived: handleDataReceived,
     onAIResultReceived: handleAIResult,
-    autoRequestState: !compact // 紧凑模式下不自动请求状态
+    autoRequestState: !compact // do not auto-request state in compact mode
   });
 
-  // 延迟初始化，避免阻塞页面渲染
+  // Delay initialization to avoid blocking page render
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsInitialized(true);
@@ -69,7 +69,7 @@ export default function GlobalConnector({
     return () => clearTimeout(timer);
   }, []);
 
-  // 處理電位器設置變更
+  // Handle potentiometer setting changes
   useEffect(() => {
     const manager = GlobalConnectionManager.getInstance();
     manager.setPotentiometerSettings({
@@ -77,7 +77,7 @@ export default function GlobalConnector({
     });
   }, [potentiometerReversed]);
 
-  // 处理数据接收
+  // Handle data received
   function handleDataReceived(data: SensorData) {
     console.log('🔗 GlobalConnector received data:', data);
     setSensorData(data);
@@ -85,7 +85,7 @@ export default function GlobalConnector({
     onDataReceived?.(data);
   }
 
-  // 处理AI结果
+  // Handle AI result
   function handleAIResult(result: AIResult) {
     setAiAnalysisData(prev => ({
       ...prev,
@@ -95,7 +95,7 @@ export default function GlobalConnector({
       isAnalyzing: false
     }));
 
-    // 保存分析记录
+    // Save analysis record
     try {
       const record = analysisRecordService.saveRecord({
         analysisCount: result.analysisCount,
@@ -112,13 +112,13 @@ export default function GlobalConnector({
         },
         source: connectionType || 'unknown',
       });
-      console.log('全局连接AI分析记录已保存:', record);
+      console.log('Global connection AI analysis record saved:', record);
     } catch (error) {
-      console.error('保存全局连接AI分析记录失败:', error);
+      console.error('Failed to save global connection AI analysis record:', error);
     }
   }
 
-  // 获取帕金森等级描述
+  // Get Parkinson level description
   const getParkinsonLevelDescription = (level: number): string => {
     switch (level) {
       case 1: return 'Normal';
@@ -130,7 +130,7 @@ export default function GlobalConnector({
     }
   };
 
-  // 获取训练建议
+  // Get training recommendation
   const getRecommendation = (level: number): string => {
     switch (level) {
       case 1: return 'Maintain current training intensity';
@@ -142,17 +142,17 @@ export default function GlobalConnector({
     }
   };
 
-  // 获取推荐阻力
+  // Get recommended resistance
   const getRecommendedResistance = (level: number): number => {
-    return Math.round(30 + (level - 1) * 30); // 30-150度范围
+    return Math.round(30 + (level - 1) * 30); // range 30-150 degrees
   };
 
-  // 发送测试命令
+  // Send test command
   const handleSendCommand = async (command: string) => {
     try {
       await sendCommand(command);
     } catch (error) {
-      console.error('发送命令失败:', error);
+      console.error('Send command failed:', error);
     }
   };
 
@@ -164,7 +164,7 @@ export default function GlobalConnector({
             <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
             <div>
               <div className="font-medium text-sm">
-                {isConnected ? `已连接 (${connectionType})` : '未连接'}
+                {isConnected ? `Connected (${connectionType})` : 'Not Connected'}
               </div>
               {deviceName && (
                 <div className="text-xs text-gray-500">{deviceName}</div>
@@ -181,14 +181,14 @@ export default function GlobalConnector({
                     disabled={isConnecting || !browserSupport.serial}
                     className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
                   >
-                    串口
+                    Serial
                   </button>
                   <button
                     onClick={connectBluetooth}
                     disabled={isConnecting || !browserSupport.bluetooth}
                     className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
                   >
-                    蓝牙
+                    Bluetooth
                   </button>
                 </>
               ) : (
@@ -196,7 +196,7 @@ export default function GlobalConnector({
                   onClick={disconnect}
                   className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
                 >
-                  断开
+                  Disconnect
                 </button>
               )}
             </div>
@@ -206,20 +206,20 @@ export default function GlobalConnector({
         {error && (
           <div className="mt-2 p-2 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded text-xs">
             {error}
-            <button onClick={clearError} className="ml-2 underline">清除</button>
+            <button onClick={clearError} className="ml-2 underline">Clear Error</button>
           </div>
         )}
       </div>
     );
   }
 
-  // 如果还未初始化，显示简单的加载状态
+  // Show simple loading state if not yet initialized
   if (!isInitialized) {
     return (
       <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-lg">
         <div className="flex items-center justify-center">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-gray-600 dark:text-gray-400">初始化连接管理器...</span>
+          <span className="ml-2 text-gray-600 dark:text-gray-400">Initializing connection manager...</span>
         </div>
       </div>
     );
@@ -228,41 +228,41 @@ export default function GlobalConnector({
   return (
     <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-lg">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold">全局设备连接</h2>
+        <h2 className="text-xl font-semibold">Global Device Connection</h2>
         <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
       </div>
 
       {error && (
         <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
           {error}
-          <button onClick={clearError} className="ml-2 underline">清除错误</button>
+          <button onClick={clearError} className="ml-2 underline">Clear Error</button>
         </div>
       )}
 
-      {/* 连接状态 */}
+      {/* Connection status */}
       <div className="space-y-4 mb-6">
         <div className="flex items-center justify-between p-4 bg-gray-100 dark:bg-neutral-700 rounded-lg">
-          <span>连接状态</span>
+          <span>Connection Status</span>
           <span className={`font-semibold ${isConnected ? 'text-green-500' : isConnecting ? 'text-yellow-500' : 'text-gray-500'}`}>
-            {isConnected ? '已连接' : isConnecting ? '连接中...' : '未连接'}
+            {isConnected ? 'Connected' : isConnecting ? 'Connecting...' : 'Not Connected'}
           </span>
         </div>
         
         {connectionType && (
           <div className="flex items-center justify-between p-4 bg-gray-100 dark:bg-neutral-700 rounded-lg">
-            <span>连接类型</span>
-            <span className="font-semibold">{connectionType === 'serial' ? '串口' : '蓝牙'}</span>
+            <span>Connection Type</span>
+            <span className="font-semibold">{connectionType === 'serial' ? 'Serial' : 'Bluetooth'}</span>
           </div>
         )}
         
         {deviceName && (
           <div className="flex items-center justify-between p-4 bg-gray-100 dark:bg-neutral-700 rounded-lg">
-            <span>设备名称</span>
+            <span>Device Name</span>
             <span className="font-semibold">{deviceName}</span>
           </div>
         )}
 
-        {/* 跨页面状态提示 */}
+        {/* Cross-page state notice */}
         {isConnected && (
           <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <div className="flex items-center space-x-2">
@@ -270,17 +270,17 @@ export default function GlobalConnector({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-sm text-blue-700 dark:text-blue-300">
-                连接状态已在所有页面间同步
+                Connection state synchronized across all pages
               </span>
             </div>
           </div>
         )}
       </div>
 
-      {/* 连接控制 */}
+      {/* Connection controls */}
       {showConnectionControls && (
         <div className="space-y-4 mb-6">
-          <h3 className="text-lg font-semibold">连接控制</h3>
+          <h3 className="text-lg font-semibold">Connection Controls</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {!isConnected ? (
@@ -290,8 +290,8 @@ export default function GlobalConnector({
                   disabled={isConnecting || !browserSupport.serial}
                   className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg transition"
                 >
-                  {isConnecting ? '连接中...' : '串口连接'}
-                  {!browserSupport.serial && <span className="ml-2 text-xs">(不支持)</span>}
+                  {isConnecting ? 'Connecting...' : 'Serial Connection'}
+                  {!browserSupport.serial && <span className="ml-2 text-xs">(Not Supported)</span>}
                 </button>
                 
                 <button
@@ -299,8 +299,8 @@ export default function GlobalConnector({
                   disabled={isConnecting || !browserSupport.bluetooth}
                   className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg transition"
                 >
-                  {isConnecting ? '连接中...' : '蓝牙连接'}
-                  {!browserSupport.bluetooth && <span className="ml-2 text-xs">(不支持)</span>}
+                  {isConnecting ? 'Connecting...' : 'Bluetooth Connection'}
+                  {!browserSupport.bluetooth && <span className="ml-2 text-xs">(Not Supported)</span>}
                 </button>
               </>
             ) : (
@@ -308,30 +308,30 @@ export default function GlobalConnector({
                 onClick={disconnect}
                 className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition"
               >
-                断开连接
+                Disconnect
               </button>
             )}
           </div>
 
-          {/* 浏览器支持状态 */}
+          {/* Browser support status */}
           <div className="text-sm text-gray-600 dark:text-gray-400">
             <div className="flex items-center space-x-4">
               <div className="flex items-center">
                 <div className={`w-2 h-2 rounded-full mr-2 ${browserSupport.serial ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span>串口: {browserSupport.serial ? '支持' : '不支持'}</span>
+                <span>Serial: {browserSupport.serial ? 'Supported' : 'Not Supported'}</span>
               </div>
               <div className="flex items-center">
                 <div className={`w-2 h-2 rounded-full mr-2 ${browserSupport.bluetooth ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span>蓝牙: {browserSupport.bluetooth ? '支持' : '不支持'}</span>
+                <span>Bluetooth: {browserSupport.bluetooth ? 'Supported' : 'Not Supported'}</span>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 電位器方向設置 */}
+      {/* Potentiometer direction settings */}
       <div className="mt-4 p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg">
-        <h3 className="text-sm font-medium mb-2">電位器設置</h3>
+        <h3 className="text-sm font-medium mb-2">Potentiometer Settings</h3>
         <div className="flex items-center space-x-3">
           <label className="flex items-center cursor-pointer">
             <input
@@ -348,28 +348,28 @@ export default function GlobalConnector({
               }`} />
             </div>
             <span className="ml-3 text-sm">
-              反向電位器 {potentiometerReversed ? '(減少=彎曲)' : '(增加=彎曲)'}
+              Reverse Potentiometer {potentiometerReversed ? '(Decrease = Bend)' : '(Increase = Bend)'}
             </span>
           </label>
         </div>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          如果手指彎曲方向相反，請開啟此選項
+          If the finger bend direction is reversed, enable this option.
         </p>
       </div>
 
-      {/* 传感器数据 */}
+      {/* Sensor data */}
       {showSensorData && isConnected && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">实时传感器数据</h3>
+          <h3 className="text-lg font-semibold">Live Sensor Data</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">手指弯曲度</h4>
+              <h4 className="font-medium mb-2">Finger Bend</h4>
               {sensorData.fingers.map((value, index) => {
                 const percentage = Math.min(100, Math.max(0, (value / 1023) * 100));
                 return (
                   <div key={index} className="flex items-center justify-between mb-2">
-                    <span className="text-sm">手指{index + 1}:</span>
+                    <span className="text-sm">Finger {index + 1}:</span>
                     <span className="text-sm font-medium">{Math.round(percentage)}%</span>
                   </div>
                 );
@@ -377,10 +377,10 @@ export default function GlobalConnector({
             </div>
             
             <div className="bg-gray-100 dark:bg-neutral-700 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">IMU数据</h4>
+              <h4 className="font-medium mb-2">IMU Data</h4>
               <div className="space-y-2 text-sm">
-                <div>加速度: X:{sensorData.accel.x.toFixed(2)} Y:{sensorData.accel.y.toFixed(2)} Z:{sensorData.accel.z.toFixed(2)}</div>
-                <div>陀螺仪: X:{sensorData.gyro.x.toFixed(2)} Y:{sensorData.gyro.y.toFixed(2)} Z:{sensorData.gyro.z.toFixed(2)}</div>
+                <div>Accel: X:{sensorData.accel.x.toFixed(2)} Y:{sensorData.accel.y.toFixed(2)} Z:{sensorData.accel.z.toFixed(2)}</div>
+                <div>Gyro: X:{sensorData.gyro.x.toFixed(2)} Y:{sensorData.gyro.y.toFixed(2)} Z:{sensorData.gyro.z.toFixed(2)}</div>
                 {sensorData.emg !== undefined && (
                   <div>EMG: {sensorData.emg.toFixed(0)}</div>
                 )}
@@ -388,41 +388,41 @@ export default function GlobalConnector({
             </div>
           </div>
 
-          {/* AI分析结果 */}
+          {/* AI analysis results */}
           {aiAnalysisData.analysisCount > 0 && (
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-              <h4 className="font-medium mb-2 text-blue-800 dark:text-blue-200">最新AI分析结果</h4>
+              <h4 className="font-medium mb-2 text-blue-800 dark:text-blue-200">Latest AI Analysis Result</h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>分析次数: {aiAnalysisData.analysisCount}</div>
-                <div>帕金森等级: {aiAnalysisData.parkinsonLevel}</div>
-                <div>置信度: {aiAnalysisData.confidence.toFixed(1)}%</div>
-                <div>推荐阻力: {getRecommendedResistance(aiAnalysisData.parkinsonLevel)}度</div>
+                <div>Analysis Count: {aiAnalysisData.analysisCount}</div>
+                <div>Parkinson Level: {aiAnalysisData.parkinsonLevel}</div>
+                <div>Confidence: {aiAnalysisData.confidence.toFixed(1)}%</div>
+                <div>Recommended Resistance: {getRecommendedResistance(aiAnalysisData.parkinsonLevel)}°</div>
               </div>
             </div>
           )}
 
-          {/* 快速命令 */}
+          {/* Quick commands */}
           {isConnected && (
             <div className="space-y-2">
-              <h4 className="font-medium">快速命令</h4>
+              <h4 className="font-medium">Quick Commands</h4>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => handleSendCommand('CALIBRATE')}
                   className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
                 >
-                  校准
+                  Calibrate
                 </button>
                 <button
                   onClick={() => handleSendCommand('AUTO')}
                   className="px-3 py-1 text-sm bg-purple-500 text-white rounded hover:bg-purple-600"
                 >
-                  AI分析
+                  AI Analysis
                 </button>
                 <button
                   onClick={() => handleSendCommand('STATUS')}
                   className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
                 >
-                  状态查询
+                  Status Query
                 </button>
               </div>
             </div>

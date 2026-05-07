@@ -32,6 +32,8 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
       rendererRef.current.setSize(width, height);
     };
 
+    const cleanupRef = { current: undefined as undefined | (() => void) };
+
     const initIfNeeded = () => {
       if (initializedRef.current) {
         resizeToContainer();
@@ -41,18 +43,18 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
       const rect = container.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0) return;
 
-      // 初始化场景
+      // Initialize scene
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0xffffff);
       sceneRef.current = scene;
 
-      // 初始化相机（先用安全的默認比例，隨後由 ResizeObserver 校正）
+      // Initialize camera (use a safe default ratio first; ResizeObserver will correct it later)
       const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
       camera.position.set(0, 2, 8);
       camera.lookAt(0, 0, 0);
       cameraRef.current = camera;
 
-      // 初始化渲染器
+      // Initialize renderer
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.shadowMap.enabled = true;
@@ -60,25 +62,25 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
       container.appendChild(renderer.domElement);
       rendererRef.current = renderer;
 
-      // 初始尺寸設置
+      // Initial size setup
       resizeToContainer();
 
-      // 创建灯光
+      // Create lights
       createLights(scene);
 
-      // 创建手部模型
+      // Create hand model
       const handGroup = new THREE.Group();
       scene.add(handGroup);
       handGroupRef.current = handGroup;
       createSimpleHandModel(handGroup);
 
-      // 添加事件监听并保存清理函数
+      // Add event listeners and save cleanup function
       const cleanupEventListeners = addEventListeners(renderer.domElement, handGroup, camera);
 
-      // 开始动画循环
+      // Start animation loop
       animate();
 
-      // 標記初始化完成，並在卸載時清理
+      // Mark initialization complete, and clean up on unmount
       initializedRef.current = true;
       cleanupRef.current = () => {
         if (animationIdRef.current) {
@@ -96,9 +98,7 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
       };
     };
 
-    const cleanupRef = { current: undefined as undefined | (() => void) };
-
-    // 使用 ResizeObserver 以便容器尺寸變化（例如側邊欄開合）時也能正確調整
+    // Use ResizeObserver so container size changes (e.g. sidebar toggle) are also handled correctly
     const ro = new ResizeObserver(() => {
       initIfNeeded();
       resizeToContainer();
@@ -106,7 +106,7 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
     ro.observe(container);
     resizeObserverRef.current = ro;
 
-    // 若初次渲染已具有尺寸，嘗試立即初始化
+    // If the initial render already has a size, try to initialize immediately
     initIfNeeded();
 
     return () => {
@@ -121,65 +121,65 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
     };
   }, []);
 
-  // 初始化時設置手指為伸直狀態，手掌和手指在同一水平面
+  // On initialization, set fingers to extended state so palm and fingers are on the same horizontal plane
   useEffect(() => {
     if (handGroupRef.current && fingerGroupsRef.current.length === 5) {
-      console.log('🎯 初始化3D手部模型為伸直狀態');
+      console.log('Initializing 3D hand model to extended state');
 
-      // 調整手部整體旋轉，使手掌和手指在同一水平面
-      handGroupRef.current.rotation.x = 0; // 重置X軸旋轉
-      handGroupRef.current.rotation.y = 0; // 重置Y軸旋轉
-      handGroupRef.current.rotation.z = 0; // 重置Z軸旋轉
+      // Adjust overall hand rotation so palm and fingers are on the same horizontal plane
+      handGroupRef.current.rotation.x = 0; // reset X axis rotation
+      handGroupRef.current.rotation.y = 0; // reset Y axis rotation
+      handGroupRef.current.rotation.z = 0; // reset Z axis rotation
 
-      // 設置所有手指為伸直狀態（弯曲度為0）
+      // Set all fingers to extended state (bend = 0)
       for (let i = 0; i < 5; i++) {
         updateFingerBending(i, 0);
       }
 
-      console.log('🎯 手掌和手指已設置為同一水平面');
+      console.log('Palm and fingers set to the same horizontal plane');
     }
   }, [handGroupRef.current, fingerGroupsRef.current]);
 
   useEffect(() => {
-    console.log('🎮 SimpleHand3D received sensorData:', sensorData);
+    console.log('SimpleHand3D received sensorData:', sensorData);
     if (sensorData && handGroupRef.current) {
-      console.log('✅ Updating 3D hand model with data:', {
+      console.log('Updating 3D hand model with data:', {
         fingers: sensorData.fingers,
         rotation: sensorData.rotation
       });
 
-      // 檢查是否為重置信號（所有手指都為0）
+      // Check for reset signal (all fingers are 0)
       const isResetSignal = sensorData.fingers.every(value => value === 0);
 
       if (isResetSignal) {
-        console.log('🔄 收到重置信號，重新初始化3D模型');
+        console.log('Reset signal received, re-initializing 3D model');
 
-        // 重置手部旋轉到水平面
+        // Reset hand rotation to horizontal plane
         handGroupRef.current.rotation.x = 0;
         handGroupRef.current.rotation.y = 0;
         handGroupRef.current.rotation.z = 0;
 
-        // 重置所有手指為伸直狀態
+        // Reset all fingers to extended state
         for (let i = 0; i < 5; i++) {
           updateFingerBending(i, 0);
         }
 
-        console.log('✅ 3D模型已重置為伸直狀態，手掌和手指在同一水平面');
+        console.log('3D model reset to extended state, palm and fingers on the same horizontal plane');
       } else {
-        // 正常更新手指弯曲（現在value是弯曲度，0=伸直，正值=彎曲）
+        // Normal finger bend update (value is now the bend amount; 0=extended, positive=bent)
         sensorData.fingers.forEach((value, index) => {
           if (index < 5 && fingerGroupsRef.current[index]) {
-            console.log(`👆 Updating finger ${index} to bend value ${value}`);
+            console.log(`Updating finger ${index} to bend value ${value}`);
             updateFingerBending(index, value);
           }
         });
 
-        // 更新手部旋转
-        console.log('🔄 Updating hand rotation:', sensorData.rotation);
+        // Update hand rotation
+        console.log('Updating hand rotation:', sensorData.rotation);
         updateHandRotation(sensorData.rotation);
       }
     } else {
-      console.log('❌ Cannot update 3D hand:', {
+      console.log('Cannot update 3D hand:', {
         hasSensorData: !!sensorData,
         hasHandGroup: !!handGroupRef.current
       });
@@ -187,22 +187,22 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
   }, [sensorData]);
 
   const createLights = (scene: THREE.Scene) => {
-    // 柔和環境光
+    // Soft ambient light
     const hemi = new THREE.HemisphereLight(0xbfd4ff, 0x1a1a1a, 0.6);
     scene.add(hemi);
 
-    // 主光源
+    // Key light
     const key = new THREE.DirectionalLight(0xffffff, 1.3);
     key.position.set(6, 8, 6);
     key.castShadow = true;
     scene.add(key);
 
-    // 冷色輔光
+    // Cool fill light
     const cool = new THREE.DirectionalLight(0x4a90e2, 0.7);
     cool.position.set(-6, 3, 4);
     scene.add(cool);
 
-    // 背光輪廓
+    // Rim backlight
     const rim = new THREE.DirectionalLight(0xffa366, 0.4);
     rim.position.set(-2, 2, -6);
     scene.add(rim);
@@ -216,7 +216,7 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
   }
 
   const createSimpleHandModel = (handGroup: THREE.Group) => {
-    // 创建手掌
+    // Create palm
     const palmGeometry = new THREE.BoxGeometry(3.2, 0.8, 4.2);
     const palmMaterial = new THREE.MeshPhysicalMaterial({
       color: 0x6b7280,
@@ -231,7 +231,7 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
     palm.receiveShadow = true;
     handGroup.add(palm);
 
-    // 掌邊線條（機械風格輪廓）
+    // Palm edge lines (mechanical style outline)
     const palmEdges = new THREE.EdgesGeometry(palmGeometry);
     const palmLine = new THREE.LineSegments(
       palmEdges,
@@ -239,7 +239,7 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
     );
     palm.add(palmLine);
 
-    // 手腕基座
+    // Wrist base
     const wristGeom = new THREE.CylinderGeometry(1.2, 1.2, 1.0, 24);
     const wristMat = new THREE.MeshPhysicalMaterial({
       color: 0x4b5563,
@@ -252,15 +252,15 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
     wrist.castShadow = true;
     handGroup.add(wrist);
 
-    // 创建5根手指 (左手邏輯：finger1=拇指, finger2=食指, finger3=中指, finger4=無名指, finger5=小指)
-    // 修改：所有手指都與手掌在同一水平面，初始狀態為伸直
+    // Create 5 fingers (left hand logic: finger1=thumb, finger2=index, finger3=middle, finger4=ring, finger5=pinky)
+    // Fix: all fingers on the same horizontal plane as palm, initial state is extended
     const fingerConfigs: FingerConfig[] = [
-      // baseRotation: [x, y, z] - 設置為 Math.PI / 2 確保與手掌在同一水平面並向正確方向彎曲
-      { name: 'thumb',  position: [-1.9, 0, 0.6], scale: 0.9,  baseRotation: [Math.PI / 2, 0, 0.6] },  // finger1: 拇指 - 向外偏移並增加展開角度
-      { name: 'index',  position: [0.9, 0, 2.1], scale: 1.0,  baseRotation: [Math.PI / 2, 0, 0] },    // finger2: 食指 - 水平伸直
-      { name: 'middle', position: [0,   0, 2.2], scale: 1.1,  baseRotation: [Math.PI / 2, 0, 0] },    // finger3: 中指 - 水平伸直
-      { name: 'ring',   position: [-0.9, 0, 2.1], scale: 0.97, baseRotation: [Math.PI / 2, 0, 0] },   // finger4: 無名指 - 水平伸直
-      { name: 'pinky',  position: [-1.7, 0, 1.8], scale: 0.82, baseRotation: [Math.PI / 2, 0, -0.1] } // finger5: 小指 - 水平伸直
+      // baseRotation: [x, y, z] - set to Math.PI/2 to ensure same horizontal plane as palm and correct bend direction
+      { name: 'thumb',  position: [-1.9, 0, 0.6], scale: 0.9,  baseRotation: [Math.PI / 2, 0, 0.6] },  // finger1: thumb - offset outward with extra spread angle
+      { name: 'index',  position: [0.9, 0, 2.1], scale: 1.0,  baseRotation: [Math.PI / 2, 0, 0] },    // finger2: index - horizontal extension
+      { name: 'middle', position: [0,   0, 2.2], scale: 1.1,  baseRotation: [Math.PI / 2, 0, 0] },    // finger3: middle - horizontal extension
+      { name: 'ring',   position: [-0.9, 0, 2.1], scale: 0.97, baseRotation: [Math.PI / 2, 0, 0] },   // finger4: ring - horizontal extension
+      { name: 'pinky',  position: [-1.7, 0, 1.8], scale: 0.82, baseRotation: [Math.PI / 2, 0, -0.1] } // finger5: pinky - horizontal extension
     ];
 
     fingerGroupsRef.current = [];
@@ -268,7 +268,7 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
       const fingerGroup = createFinger(config, index);
       fingerGroup.position.set(config.position[0], config.position[1], config.position[2]);
       fingerGroup.scale.setScalar(config.scale);
-      // 基座方向（手掌與手指之間的平行/傾斜角）
+      // Base direction (parallel/tilt angle between palm and finger)
       if (config.baseRotation) {
         fingerGroup.rotation.set(config.baseRotation[0], config.baseRotation[1], config.baseRotation[2]);
       }
@@ -279,23 +279,23 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
 
   const createFinger = (config: FingerConfig, fingerIndex: number) => {
     const fingerGroup = new THREE.Group();
-    // MCP、PIP、DIP 關節尺寸
+    // MCP, PIP, DIP joint sizes
     const jointSizes = [
-      { length: 1.0, radius: 0.16 }, // MCP -> 近端指骨
-      { length: 0.85, radius: 0.13 }, // PIP -> 中節
-      { length: 0.65, radius: 0.11 } // DIP -> 末節
+      { length: 1.0, radius: 0.16 }, // MCP -> proximal phalanx
+      { length: 0.85, radius: 0.13 }, // PIP -> intermediate phalanx
+      { length: 0.65, radius: 0.11 } // DIP -> distal phalanx
     ];
 
     let currentY = 0;
     let parent: THREE.Group = fingerGroup;
 
     jointSizes.forEach((joint, jointIndex) => {
-      // 關節樞軸（層級鏈接，實現連動）
+      // Joint pivot (hierarchical chain for linked movement)
       const jointPivot = new THREE.Group();
       jointPivot.position.y = currentY;
       parent.add(jointPivot);
 
-      // 指節網格
+      // Phalanx mesh
       const jointGeometry = new THREE.CylinderGeometry(
         joint.radius, joint.radius * 0.92, joint.length, 16
       );
@@ -312,7 +312,7 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
       jointMesh.receiveShadow = true;
       jointPivot.add(jointMesh);
 
-      // 邊線，增強機械感
+      // Edge lines to enhance mechanical feel
       const edges = new THREE.EdgesGeometry(jointGeometry);
       const line = new THREE.LineSegments(
         edges,
@@ -320,7 +320,7 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
       );
       jointMesh.add(line);
 
-      // 關節裝飾環（發光）
+      // Joint decorative ring (glowing)
       const ring = new THREE.TorusGeometry(joint.radius * 0.95, 0.03, 8, 32);
       const ringMat = new THREE.MeshStandardMaterial({ color: 0x4cc3ff, emissive: 0x1a9fff, emissiveIntensity: 0.6, metalness: 0.6, roughness: 0.4 });
       const ringMesh = new THREE.Mesh(ring, ringMat);
@@ -328,7 +328,7 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
       ringMesh.position.y = 0.02;
       jointPivot.add(ringMesh);
 
-      // 下一層父節點為當前樞軸
+      // Next layer parent is the current pivot
       parent = jointPivot;
       currentY += joint.length;
     });
@@ -341,13 +341,13 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
     const finger = fingerGroupsRef.current[fingerIndex];
     if (!finger) return;
 
-    // 現在value已經是弯曲度值（0=伸直，正值=彎曲）
-    // 將弯曲度值映射到0-1範圍，假設最大弯曲度為300
-    const maxBendValue = 300; // 可根據實際情況調整
+    // value is already the bend amount (0=extended, positive=bent)
+    // Map the bend value to 0-1 range; assume max bend is 300
+    const maxBendValue = 300; // adjust based on actual conditions
     const t = THREE.MathUtils.clamp(value / maxBendValue, 0, 1);
     const eased = t * t * (3 - 2 * t); // smoothstep
 
-    // 角度上限（弧度）
+    // Angle limits (radians)
     const isThumb = fingerIndex === 0;
     const maxMCP = isThumb ? THREE.MathUtils.degToRad(50) : THREE.MathUtils.degToRad(70);
     const maxPIP = isThumb ? THREE.MathUtils.degToRad(60) : THREE.MathUtils.degToRad(100);
@@ -357,8 +357,8 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
     const pipAngle = eased * maxPIP;
     const dipAngle = (eased * maxDIP);
 
-    // finger 結構：層級關節 [MCP, PIP, DIP]
-    // 修正：使用負角度，使手指在水平面上向內彎曲
+    // finger structure: hierarchical joints [MCP, PIP, DIP]
+    // Fix: use negative angle so fingers bend inward on the horizontal plane
     if (finger.children && finger.children.length >= 1) {
       const mcpPivot = finger.children[0] as THREE.Group;
       mcpPivot.rotation.x = -mcpAngle;
@@ -380,7 +380,7 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
   const updateHandRotation = (rotation: { x: number; y: number; z: number }) => {
     if (!handGroupRef.current) return;
     
-    // 平滑旋转更新
+    // Smooth rotation update
     handGroupRef.current.rotation.x = THREE.MathUtils.lerp(
       handGroupRef.current.rotation.x, rotation.x, 0.1
     );
@@ -397,7 +397,7 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
     handGroup: THREE.Group,
     camera: THREE.PerspectiveCamera
   ) => {
-    // 鼠标控制
+    // Mouse control
     let isMouseDown = false;
     let mouseX = 0;
     let mouseY = 0;
@@ -447,7 +447,7 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
     canvas.addEventListener('wheel', onWheel);
     window.addEventListener('resize', onResize);
     
-    // 返回清理函数
+    // Return cleanup function
     return () => {
       canvas.removeEventListener('mousedown', onMouseDown);
       canvas.removeEventListener('mousemove', onMouseMove);
