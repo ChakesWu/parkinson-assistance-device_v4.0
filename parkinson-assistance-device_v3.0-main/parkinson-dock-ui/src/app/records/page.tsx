@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { AnimatedDock } from '@/components/ui/animated-dock';
-import { Home, Activity, Book, Settings, Brain, Download, Trash2, Filter, Calendar, Upload, RefreshCw, Gamepad2 } from 'lucide-react';
+import { Brain, Download, Trash2, Filter, Upload, RefreshCw } from 'lucide-react';
 import { analysisRecordService, AnalysisRecord, AnalysisStatistics } from '@/services/analysisRecordService';
 
 
@@ -13,26 +12,6 @@ export default function RecordsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
-
-  // Dynamic button configuration
-  const dockItems = [
-    {
-      link: "/",
-      Icon: <Home size={22} />,
-    },
-    {
-      link: "/rehab-game",
-      Icon: <Gamepad2 size={22} />,
-    },
-    {
-      link: "/records",
-      Icon: <Book size={22} />,
-    },
-    {
-      link: "/ai-analysis",
-      Icon: <Brain size={22} />,
-    }
-  ];
 
   // Load records and statistics
   useEffect(() => {
@@ -521,10 +500,6 @@ export default function RecordsPage() {
         )}
       </main>
 
-      {/* Add floating dynamic buttons */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-        <AnimatedDock items={dockItems} />
-      </div>
     </div>
   );
 }

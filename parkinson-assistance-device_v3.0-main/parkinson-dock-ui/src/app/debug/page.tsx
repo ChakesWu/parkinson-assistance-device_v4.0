@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AnimatedDock } from "@/components/ui/animated-dock";
-import { Home, Activity, Book, Settings, Brain, Gamepad2 } from 'lucide-react';
 
 interface SensorData {
   fingers?: number[];
@@ -15,25 +13,6 @@ export default function DebugPage() {
   const [sensorData, setSensorData] = useState<SensorData | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'未連接' | '已連接' | '連接中'>('未連接');
   const [controlMode, setControlMode] = useState<'mouse' | 'imu'>('mouse');
-
-  const dockItems = [
-    {
-      link: "/",
-      Icon: <Home size={22} />,
-    },
-    {
-      link: "/rehab-game",
-      Icon: <Gamepad2 size={22} />,
-    },
-    {
-      link: "/records",
-      Icon: <Book size={22} />,
-    },
-    {
-      link: "/ai-analysis",
-      Icon: <Brain size={22} />,
-    }
-  ];
 
   // 模拟从localStorage或其他地方获取数据
   useEffect(() => {
@@ -176,10 +155,6 @@ export default function DebugPage() {
       </div>
       </div>
 
-      {/* 添加懸浮動態按鈕 */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-        <AnimatedDock items={dockItems} />
-      </div>
     </div>
   );
 }

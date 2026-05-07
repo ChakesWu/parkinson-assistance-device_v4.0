@@ -222,8 +222,8 @@ function Tabs({
   ];
 
   return (
-    <div className="px-3 sm:px-5 pt-1 pb-2 border-b border-gray-200 dark:border-neutral-700">
-      <div className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-neutral-800 p-1">
+    <div className="px-3 sm:px-5 mt-2 pt-2 pb-2 border-b border-gray-200 dark:border-neutral-700">
+      <div className="pt-2 inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-neutral-800 p-1">
         {items.map(({ id, label, Icon }) => {
           const active = tab === id;
           return (

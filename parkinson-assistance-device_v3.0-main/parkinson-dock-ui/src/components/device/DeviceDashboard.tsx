@@ -1,205 +1,274 @@
 'use client';
 
 import { useState } from 'react';
-import HandModel from './HandModel';
+import {
+  Bluetooth,
+  ChevronDown,
+  Cable,
+  MousePointer,
+  Move3d,
+  Power,
+  Activity,
+  AlertCircle,
+} from 'lucide-react';
 import SimpleHand3D from './SimpleHand3D';
-import GlobalConnector from './GlobalConnector';
-import { SensorData } from '@/utils/bluetoothManager';
-import { MousePointer, Move3d } from 'lucide-react';
-
-interface SensorDataForDisplay {
-  fingerBend?: number[];
-  accelerometer?: { x: number; y: number; z: number };
-  gyroscope?: { x: number; y: number; z: number };
-  magnetometer?: { x: number; y: number; z: number };
-}
+import { useGlobalConnection } from '@/hooks/useGlobalConnection';
+import type { SensorData } from '@/utils/bluetoothManager';
 
 export interface DeviceDashboardProps {
   /**
    * Visual variant.
-   * - `page`: full page layout (used by `/device` route).
-   * - `modal`: padded layout for a desktop modal/dialog.
-   * - `sheet`: vertical-stacked layout for an iOS-style bottom sheet.
+   * - `page`: full-page layout (used by `/device` route).
+   * - `modal`: padded layout for desktop split panel.
+   * - `sheet`: stacked layout for mobile bottom sheet.
    */
   variant?: 'page' | 'modal' | 'sheet';
 }
 
-/**
- * The device dashboard previously inlined inside `/app/device/page.tsx`.
- *
- * Extracted so it can be rendered in three contexts: the dedicated
- * `/device` route, a desktop floating modal, or a mobile bottom sheet.
- */
-export default function DeviceDashboard({ variant = 'page' }: DeviceDashboardProps) {
-  const [sensorData, setSensorData] = useState<any>(null);
-  const [controlMode, setControlMode] = useState<'mouse' | 'imu'>('mouse');
+const FINGER_LABELS = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky'];
 
-  const handleDataReceived = (data: Partial<SensorData>) => {
-    setSensorData((prev: any) => ({ ...(prev || {}), ...(data || {}) }));
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('sensorData', JSON.stringify(data));
+export default function DeviceDashboard({ variant = 'page' }: DeviceDashboardProps) {
+  const [sensorData, setSensorData] = useState<SensorData | null>(null);
+  const [controlMode, setControlMode] = useState<'mouse' | 'imu'>('mouse');
+  const [motionExpanded, setMotionExpanded] = useState(false);
+
+  const handleData = (data: SensorData) => {
+    setSensorData((prev) => ({ ...(prev ?? {} as SensorData), ...data }));
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('sensorData', JSON.stringify(data)); } catch { /* ok */ }
     }
   };
 
-  const fingerBend = sensorData?.fingers || [0, 0, 0, 0, 0];
+  const {
+    isConnected,
+    connectionType,
+    deviceName,
+    browserSupport,
+    connectBluetooth,
+    connectSerial,
+    disconnect,
+    isConnecting,
+    error,
+    clearError,
+  } = useGlobalConnection({ onDataReceived: handleData });
 
-  const rotation = sensorData?.accel
+  const fingers = sensorData?.fingers ?? [0, 0, 0, 0, 0];
+  const accel = sensorData?.accel;
+  const gyro = sensorData?.gyro;
+
+  const rotation = accel
     ? {
-        x: Math.atan2(sensorData.accel.y, sensorData.accel.z),
-        y: Math.atan2(
-          -sensorData.accel.x,
-          Math.sqrt(
-            sensorData.accel.y * sensorData.accel.y +
-              sensorData.accel.z * sensorData.accel.z,
-          ),
-        ),
+        x: Math.atan2(accel.y, accel.z),
+        y: Math.atan2(-accel.x, Math.sqrt(accel.y * accel.y + accel.z * accel.z)),
         z: 0,
       }
     : { x: 0, y: 0, z: 0 };
 
-  const displayData: SensorDataForDisplay = {
-    fingerBend: sensorData?.fingers,
-    accelerometer: sensorData?.accel,
-    gyroscope: sensorData?.gyro,
-    magnetometer: sensorData?.mag,
-  };
-
-  const toggleControlMode = () =>
-    setControlMode((p) => (p === 'mouse' ? 'imu' : 'mouse'));
-
-  const testSensorData = () => {
-    handleDataReceived({
-      fingers: [200, 300, 400, 500, 600],
-      accel: { x: 0.1, y: 0.2, z: 0.9 },
-      gyro: { x: 0.05, y: -0.1, z: 0.02 },
-      mag: { x: 0, y: 0, z: 0 },
-      emg: 100,
-    });
-  };
-
-  const containerClass =
-    variant === 'page'
-      ? 'container mx-auto py-6 px-4 flex flex-col gap-6'
-      : 'p-4 sm:p-6 flex flex-col gap-6';
-
-  const isSheet = variant === 'sheet';
-  const gridClass = isSheet
-    ? 'grid grid-cols-1 gap-4'
-    : 'grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1';
-  const handModelColSpan = isSheet ? '' : 'lg:col-span-2';
-  const modelHeight = isSheet ? 'h-[380px]' : 'h-[500px]';
+  const isPage = variant === 'page';
+  const containerClass = isPage
+    ? 'max-w-5xl mx-auto px-6 py-8 space-y-5'
+    : 'p-4 sm:p-5 space-y-4';
+  const modelHeight = isPage ? 'h-[480px]' : 'h-[300px]';
 
   return (
     <div className={containerClass}>
-      <div className="flex justify-between items-center flex-wrap gap-2">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            onClick={testSensorData}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg transition text-sm"
-          >
-            🧪 Test Data
-          </button>
-          <div className="text-xs sm:text-sm text-gray-500">
-            {sensorData ? 'Connected' : 'Disconnected'} | X:
-            {rotation.x.toFixed(2)} Y:{rotation.y.toFixed(2)} | {controlMode}
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <GlobalConnector
-          onDataReceived={handleDataReceived}
-          showSensorData
-          showConnectionControls
-          compact={false}
-        />
-      </div>
-
-      <div className={gridClass}>
-        <div
-          className={`bg-gray-100 dark:bg-neutral-800 rounded-lg p-4 ${modelHeight} ${handModelColSpan}`}
-        >
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">3D Hand Model Control</h2>
-            <button
-              onClick={toggleControlMode}
-              className={`flex items-center px-4 py-2 rounded-full transition ${
-                controlMode === 'mouse'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-purple-500 text-white'
-              }`}
-            >
-              {controlMode === 'mouse' ? (
-                <>
-                  <MousePointer size={18} className="mr-2" />
-                  Mouse Control
-                </>
-              ) : (
-                <>
-                  <Move3d size={18} className="mr-2" />
-                  IMU Control
-                </>
+      {/* ── Connection bar ── */}
+      <section className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className={`relative flex h-2.5 w-2.5 flex-shrink-0`}>
+              {isConnected && (
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
               )}
-            </button>
-          </div>
-
-          <div className="w-full h-[calc(100%-60px)]">
-            <SimpleHand3D
-              sensorData={{
-                fingers: fingerBend,
-                rotation:
-                  controlMode === 'imu' ? rotation : { x: 0, y: 0, z: 0 },
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="bg-gray-100 dark:bg-neutral-800 rounded-lg p-4">
-          <h2 className="text-xl font-semibold mb-4">Real-time Sensor Data</h2>
-
-          <div className="mb-4 p-3 bg-white dark:bg-gray-700 rounded">
-            <h3 className="font-medium mb-2">Debug Info</h3>
-            <div className="text-sm space-y-1">
-              <div>
-                Connection Status: {sensorData ? 'Connected' : 'Disconnected'}
+              <span
+                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                  isConnected ? 'bg-green-500' : isConnecting ? 'bg-yellow-400' : 'bg-gray-300 dark:bg-neutral-600'
+                }`}
+              />
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                {isConnecting
+                  ? 'Connecting…'
+                  : isConnected
+                    ? `Connected · ${connectionType === 'serial' ? 'Serial' : 'Bluetooth'}`
+                    : 'No device'}
               </div>
-              {sensorData?.fingers && (
-                <>
-                  <div>Finger Data (Raw): [{sensorData.fingers.join(', ')}]</div>
-                  <div>
-                    Finger Data (%): [
-                    {sensorData.fingers
-                      .map((v: number) => Math.round((v / 1023) * 100))
-                      .join('%, ')}
-                    %]
-                  </div>
-                </>
+              {deviceName && (
+                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{deviceName}</div>
               )}
-              {sensorData?.accel && (
-                <div>
-                  Accel: X:{sensorData.accel.x.toFixed(2)}, Y:
-                  {sensorData.accel.y.toFixed(2)}, Z:
-                  {sensorData.accel.z.toFixed(2)}
-                </div>
-              )}
-              {sensorData?.gyro && (
-                <div>
-                  Gyro: X:{sensorData.gyro.x.toFixed(2)}, Y:
-                  {sensorData.gyro.y.toFixed(2)}, Z:
-                  {sensorData.gyro.z.toFixed(2)}
-                </div>
-              )}
-              <div>
-                Rotation: X:{rotation.x.toFixed(2)}, Y:
-                {rotation.y.toFixed(2)}, Z:{rotation.z.toFixed(2)}
-              </div>
-              <div>Control Mode: {controlMode}</div>
             </div>
           </div>
 
-          <HandModel sensorData={displayData} />
+          <div className="flex items-center gap-2">
+            {!isConnected ? (
+              <>
+                <button
+                  onClick={connectSerial}
+                  disabled={isConnecting || !browserSupport.serial}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                >
+                  <Cable size={14} />
+                  Serial
+                </button>
+                <button
+                  onClick={connectBluetooth}
+                  disabled={isConnecting || !browserSupport.bluetooth}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                >
+                  <Bluetooth size={14} />
+                  Bluetooth
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={disconnect}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+              >
+                <Power size={14} />
+                Disconnect
+              </button>
+            )}
+          </div>
         </div>
+
+        {error && (
+          <div className="mt-3 flex items-start gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm">
+            <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
+            <span className="flex-1">{error}</span>
+            <button onClick={clearError} className="text-xs underline whitespace-nowrap">Dismiss</button>
+          </div>
+        )}
+      </section>
+
+      {/* ── 3D hand model ── */}
+      <section className="relative bg-gradient-to-br from-gray-100 to-gray-50 dark:from-neutral-800 dark:to-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-700 overflow-hidden">
+        {/* Mode toggle — overlaid */}
+        <div className="absolute top-3 right-3 z-10">
+          <div className="inline-flex bg-white/90 dark:bg-neutral-900/90 backdrop-blur rounded-lg p-0.5 shadow-sm border border-gray-200 dark:border-neutral-700">
+            <button
+              onClick={() => setControlMode('mouse')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition ${
+                controlMode === 'mouse'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <MousePointer size={12} />
+              Mouse
+            </button>
+            <button
+              onClick={() => setControlMode('imu')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition ${
+                controlMode === 'imu'
+                  ? 'bg-purple-500 text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <Move3d size={12} />
+              IMU
+            </button>
+          </div>
+        </div>
+
+        {/* Label */}
+        <div className="absolute top-3 left-3 z-10 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+          3D Hand Model
+        </div>
+
+        <div className={`w-full ${modelHeight}`}>
+          <SimpleHand3D
+            sensorData={{
+              fingers,
+              rotation: controlMode === 'imu' ? rotation : { x: 0, y: 0, z: 0 },
+            }}
+          />
+        </div>
+      </section>
+
+      {/* ── Finger bend ── */}
+      <section className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Finger Bend</h3>
+          <span className="text-xs text-gray-400 dark:text-gray-500">% of full flex</span>
+        </div>
+        <div className="grid grid-cols-5 gap-2">
+          {FINGER_LABELS.map((label, i) => {
+            const raw = fingers[i] ?? 0;
+            const pct = Math.max(0, Math.min(100, Math.round((raw / 1023) * 100)));
+            return (
+              <div key={label} className="flex flex-col items-center">
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</div>
+                <div className="w-full h-1.5 bg-gray-100 dark:bg-neutral-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full transition-all duration-150"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <div className="mt-1 text-sm font-semibold text-gray-900 dark:text-white tabular-nums">
+                  {pct}%
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── Motion sensors (collapsible) ── */}
+      <section className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 overflow-hidden">
+        <button
+          onClick={() => setMotionExpanded((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition"
+        >
+          <div className="flex items-center gap-2">
+            <Activity size={14} className="text-gray-500 dark:text-gray-400" />
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">Motion Sensors</span>
+          </div>
+          <ChevronDown
+            size={16}
+            className={`text-gray-400 transition-transform ${motionExpanded ? 'rotate-180' : ''}`}
+          />
+        </button>
+        {motionExpanded && (
+          <div className="px-4 pb-4 grid grid-cols-2 gap-3">
+            <SensorTriad label="Accelerometer" data={accel} />
+            <SensorTriad label="Gyroscope" data={gyro} />
+            <SensorTriad label="Rotation (rad)" data={rotation} />
+            {sensorData?.emg !== undefined && (
+              <div className="col-span-2 sm:col-span-1 bg-gray-50 dark:bg-neutral-900 rounded-xl p-3">
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">EMG</div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-white tabular-nums">
+                  {sensorData.emg.toFixed(0)}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function SensorTriad({
+  label,
+  data,
+}: {
+  label: string;
+  data?: { x: number; y: number; z: number };
+}) {
+  const fmt = (v?: number) => (v === undefined ? '—' : v.toFixed(2));
+  return (
+    <div className="bg-gray-50 dark:bg-neutral-900 rounded-xl p-3">
+      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1.5">{label}</div>
+      <div className="grid grid-cols-3 gap-1.5 text-xs">
+        {(['x', 'y', 'z'] as const).map((axis) => (
+          <div key={axis} className="flex flex-col">
+            <span className="text-gray-400 dark:text-gray-500 uppercase text-[10px]">{axis}</span>
+            <span className="font-semibold text-gray-900 dark:text-white tabular-nums">
+              {fmt(data?.[axis])}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Activity, Book, Brain, Gamepad2, Home, Pause, Play, RotateCcw, Settings, Target, Trophy, Zap } from 'lucide-react';
-import { AnimatedDock } from '@/components/ui/animated-dock';
+import { Activity, Gamepad2, Pause, Play, RotateCcw, Target, Trophy, Zap } from 'lucide-react';
 import { useGlobalConnection } from '@/hooks/useGlobalConnection';
 import { type SensorData } from '@/utils/bluetoothManager';
 
@@ -190,13 +189,6 @@ export default function RehabGamePage() {
     }
   };
 
-  const dockItems = [
-    { link: '/', Icon: <Home size={22} /> },
-    { link: '/rehab-game', Icon: <Gamepad2 size={22} /> },
-    { link: '/records', Icon: <Book size={22} /> },
-    { link: '/ai-analysis', Icon: <Brain size={22} /> },
-  ];
-
   return (
     <div className="min-h-screen bg-slate-950 text-white antialiased">
       <main className="container mx-auto px-4 py-8 pb-28">
@@ -338,9 +330,6 @@ export default function RehabGamePage() {
         </section>
       </main>
 
-      <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform">
-        <AnimatedDock items={dockItems} />
-      </div>
     </div>
   );
 }

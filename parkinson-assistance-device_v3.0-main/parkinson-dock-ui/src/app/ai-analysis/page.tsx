@@ -2,8 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AnimatedDock } from "@/components/ui/animated-dock";
-import { BrainCircuit, Home, Activity, Book, Settings, Brain, Gamepad2 } from 'lucide-react';
+import { BrainCircuit, Activity, Book, Settings, Brain } from 'lucide-react';
 import { getRecommendations, classifySeverity } from '@/lib/ai/recommendations';
 import { analysisRecordService } from '@/services/analysisRecordService';
 import { Sidebar, SidebarBody, SidebarLink, useSidebar } from "@/components/ui/sidebar";
@@ -64,14 +63,6 @@ export default function AIAnalysisPage() {
   const accelSeriesRef = useRef<{ x: number[]; y: number[]; z: number[] }>({ x: [], y: [], z: [] });
   const emgSeriesRef = useRef<number[]>([]);
   const tsSeriesRef = useRef<number[]>([]);
-
-  // Dynamic button configuration
-  const dockItems = [
-    { link: "/", Icon: <Home size={22} /> },
-    { link: "/rehab-game", Icon: <Gamepad2 size={22} /> },
-    { link: "/records", Icon: <Book size={22} /> },
-    { link: "/ai-analysis", Icon: <Brain size={22} /> },
-  ];
 
   // Voice recognition status
   const [isVoiceAnalyzing, setIsVoiceAnalyzing] = useState(false);
@@ -770,9 +761,6 @@ export default function AIAnalysisPage() {
         </div>
         </div>
       </main>
-      </div>
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-        <AnimatedDock items={dockItems} />
       </div>
     </>
   );
