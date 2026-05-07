@@ -16,10 +16,6 @@ export default function HomePage() {
       Icon: <Home size={22} />,
     },
     {
-      link: "/device",
-      Icon: <Activity size={22} />,
-    },
-    {
       link: "/rehab-game",
       Icon: <Gamepad2 size={22} />,
     },
@@ -30,10 +26,6 @@ export default function HomePage() {
     {
       link: "/ai-analysis",
       Icon: <Brain size={22} />,
-    },
-    {
-      link: "/settings",
-      Icon: <Settings size={22} />,
     }
   ];
 

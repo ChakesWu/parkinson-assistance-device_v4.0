@@ -192,11 +192,9 @@ export default function RehabGamePage() {
 
   const dockItems = [
     { link: '/', Icon: <Home size={22} /> },
-    { link: '/device', Icon: <Activity size={22} /> },
     { link: '/rehab-game', Icon: <Gamepad2 size={22} /> },
     { link: '/records', Icon: <Book size={22} /> },
     { link: '/ai-analysis', Icon: <Brain size={22} /> },
-    { link: '/settings', Icon: <Settings size={22} /> },
   ];
 
   return (
