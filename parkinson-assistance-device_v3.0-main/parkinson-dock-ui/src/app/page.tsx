@@ -39,7 +39,7 @@ export default function HomePage() {
 
   return (
     <div className="relative">
-      {/* 轻量级连接状态指示器 */}
+      {/* Lightweight connection status indicator */}
       <div className="fixed top-4 right-4 z-50 bg-white dark:bg-neutral-800 rounded-lg p-3 shadow-lg">
         <SimpleLightweightIndicator />
       </div>
@@ -49,11 +49,11 @@ export default function HomePage() {
           title=""
           topHref="/about"
           subtitle={{
-            regular: "基于LSTM和CNN的\n混合模型的帕金森手部\n训练设计",
+            regular: "Parkinson's Hand Training\nDesign Based on LSTM and CNN\nHybrid Model",
             gradient: "",
           }}
           description=""
-          ctaText="开始使用"
+          ctaText="Get Started"
           ctaHref="/device"
           backgroundImageUrl="/ai_model/Replicate-Web-Page.png"
           gridOptions={{ angle: 65, opacity: 0.0, cellSize: 60 }}
@@ -61,21 +61,21 @@ export default function HomePage() {
         />
 
 
-        {/* 年度帕金森趋势分析（上移与蓝色区域轻微重合，不遮挡患者心声） */}
+        {/* Annual Parkinson's Trend Analysis (moved up to slightly overlap with blue area, not blocking patient testimonials) */}
         <section className="relative z-10 -mt-16 md:-mt-24 max-w-[80vw] mx-auto px-6 md:px-10 pb-12 md:pb-16">
-          {/* 动态树状图（使用 AnimatedCardDemo，不遮挡患者心声） */}
+          {/* Dynamic tree diagram (using AnimatedCardDemo, not blocking patient testimonials) */}
           <div className="w-full flex items-center justify-center">
             <AnimatedCardDemo />
           </div>
         </section>
 
-        {/* 使用新的动画 Dock */}
+        {/* Use new animated Dock */}
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
           <AnimatedDock items={dockItems} />
         </div>
       </div>
 
-      {/* 患者见证栏位 */}
+      {/* Patient testimonials section */}
       <ParkinsonTestimonials />
 
       {/* Footer */}
