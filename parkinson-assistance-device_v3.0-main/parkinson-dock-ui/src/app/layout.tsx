@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import FloatingDevicePanel from "@/components/device/FloatingDevicePanel";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -22,7 +23,10 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
-      <body className={`${inter.variable} antialiased min-h-screen`}>{children}</body>
+      <body className={`${inter.variable} antialiased min-h-screen`}>
+        {children}
+        <FloatingDevicePanel />
+      </body>
     </html>
   );
 }

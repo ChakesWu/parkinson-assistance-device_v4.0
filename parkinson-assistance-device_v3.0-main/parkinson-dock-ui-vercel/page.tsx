@@ -4,7 +4,7 @@ import { AnimatedDock } from "@/components/ui/animated-dock";
 import AnimatedCardDemo from "@/components/ui/animated-card-demo";
 import ParkinsonTestimonials from "@/components/ui/parkinson-testimonials";
 import SimpleLightweightIndicator from "@/components/device/SimpleLightweightIndicator";
-import { Home, Activity, Book, Settings, Brain } from 'lucide-react';
+import { Home, Book, Brain } from 'lucide-react';
 
 export default function HomePage() {
   const dockItems = [
@@ -13,20 +13,12 @@ export default function HomePage() {
       Icon: <Home size={22} />,
     },
     {
-      link: "/device",
-      Icon: <Activity size={22} />,
-    },
-    {
       link: "/records",
       Icon: <Book size={22} />,
     },
     {
       link: "/ai-analysis",
       Icon: <Brain size={22} />,
-    },
-    {
-      link: "/settings",
-      Icon: <Settings size={22} />,
     }
   ];
 
