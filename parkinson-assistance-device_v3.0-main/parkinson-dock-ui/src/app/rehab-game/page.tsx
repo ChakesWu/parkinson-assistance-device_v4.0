@@ -20,10 +20,10 @@ const SAMPLE_COUNT = 96;
 const REP_HIGH_THRESHOLD = 72;
 const REP_LOW_THRESHOLD = 28;
 
-const difficultySettings: Record<Difficulty, { label: string; tolerance: number; speed: number; amplitude: number; tempo: string }> = {
-  easy: { label: 'Easy', tolerance: 22, speed: 0.0022, amplitude: 18, tempo: 'Very slow control' },
-  medium: { label: 'Medium', tolerance: 17, speed: 0.0035, amplitude: 23, tempo: 'Slow steady rhythm' },
-  hard: { label: 'Hard', tolerance: 13, speed: 0.005, amplitude: 28, tempo: 'Controlled precision' },
+const difficultySettings: Record<Difficulty, { label: string; tolerance: number; speed: number; amplitude: number; frequency: number; tempo: string }> = {
+  easy: { label: 'Easy', tolerance: 22, speed: 0.0018, amplitude: 30, frequency: 1, tempo: 'Very slow control' },
+  medium: { label: 'Medium', tolerance: 17, speed: 0.0030, amplitude: 32, frequency: 1.5, tempo: 'Slow steady rhythm' },
+  hard: { label: 'Hard', tolerance: 13, speed: 0.0042, amplitude: 35, frequency: 2, tempo: 'Controlled precision' },
 };
 
 const fingerOptions: Array<{ value: FingerMode; label: string }> = [
@@ -87,11 +87,10 @@ export default function RehabGamePage() {
     return Array.from({ length: SAMPLE_COUNT }, (_, index) => {
       const x = (index / (SAMPLE_COUNT - 1)) * GAME_WIDTH;
       const normalized = index / (SAMPLE_COUNT - 1);
-      const wave = 50 + Math.sin(normalized * Math.PI * 4 + phase) * settings.amplitude;
-      const secondary = Math.sin(normalized * Math.PI * 8 + phase * 0.55) * 6;
-      return { x, target: Math.max(8, Math.min(92, wave + secondary)) };
+      const wave = 50 + Math.sin(normalized * Math.PI * 2 * settings.frequency + phase) * settings.amplitude;
+      return { x, target: Math.max(8, Math.min(92, wave)) };
     });
-  }, [phase, settings.amplitude]);
+  }, [phase, settings.amplitude, settings.frequency]);
 
   const currentTarget = pathPoints[12]?.target ?? 50;
   const targetY = GAME_HEIGHT - (currentTarget / 100) * GAME_HEIGHT;
@@ -217,8 +216,8 @@ export default function RehabGamePage() {
             <div className="border-b border-white/10 bg-gradient-to-r from-cyan-500/15 via-blue-500/10 to-purple-500/15 p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-semibold leading-7 tracking-normal">Path Following Challenge</h2>
-                  <p className="mt-1 text-sm leading-6 tracking-normal text-slate-300">Move your fingers slowly to keep the cursor inside the glowing training lane.</p>
+                  <h2 className="text-xl font-semibold leading-7 tracking-normal">Sine Wave Follower</h2>
+                  <p className="mt-1 text-sm leading-6 tracking-normal text-slate-300">Move your fingers in a smooth rhythm to trace the sine wave inside the glowing band.</p>
                 </div>
                 <div className={`rounded-full px-4 py-2 text-sm font-semibold leading-5 tracking-wide ${isOnPath ? 'bg-emerald-400 text-emerald-950' : 'bg-rose-400 text-rose-950'}`}>
                   {isOnPath ? 'On Path' : 'Adjust Grip'}
@@ -246,6 +245,12 @@ export default function RehabGamePage() {
                   {[20, 40, 60, 80].map(line => (
                     <line key={line} x1="0" x2={GAME_WIDTH} y1={(GAME_HEIGHT * line) / 100} y2={(GAME_HEIGHT * line) / 100} stroke="rgba(148,163,184,0.16)" strokeDasharray="8 10" />
                   ))}
+                  {/* Y-axis (vertical) and X-axis (midline) for sin graph look */}
+                  <line x1="0" x2={GAME_WIDTH} y1={GAME_HEIGHT / 2} y2={GAME_HEIGHT / 2} stroke="rgba(148,163,184,0.45)" strokeWidth="1.5" />
+                  <line x1="0" x2="0" y1="0" y2={GAME_HEIGHT} stroke="rgba(148,163,184,0.45)" strokeWidth="1.5" />
+                  <text x="6" y="14" fill="rgba(148,163,184,0.7)" fontSize="11">100%</text>
+                  <text x="6" y={GAME_HEIGHT / 2 - 4} fill="rgba(148,163,184,0.7)" fontSize="11">50%</text>
+                  <text x="6" y={GAME_HEIGHT - 6} fill="rgba(148,163,184,0.7)" fontSize="11">0%</text>
                   <path d={bandPath} fill="rgba(34,211,238,0.13)" />
                   <path d={pathData} fill="none" stroke="url(#pathGradient)" strokeWidth="6" strokeLinecap="round" filter="url(#glow)" />
                   <line x1="90" x2="90" y1="0" y2={GAME_HEIGHT} stroke="rgba(255,255,255,0.28)" strokeDasharray="5 8" />

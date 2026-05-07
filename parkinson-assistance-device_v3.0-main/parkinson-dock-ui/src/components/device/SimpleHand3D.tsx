@@ -256,11 +256,12 @@ export default function SimpleHand3D({ sensorData }: { sensorData: SensorData | 
     // Fix: all fingers on the same horizontal plane as palm, initial state is extended
     const fingerConfigs: FingerConfig[] = [
       // baseRotation: [x, y, z] - set to Math.PI/2 to ensure same horizontal plane as palm and correct bend direction
-      { name: 'thumb',  position: [-1.9, 0, 0.6], scale: 0.9,  baseRotation: [Math.PI / 2, 0, 0.6] },  // finger1: thumb - offset outward with extra spread angle
-      { name: 'index',  position: [0.9, 0, 2.1], scale: 1.0,  baseRotation: [Math.PI / 2, 0, 0] },    // finger2: index - horizontal extension
-      { name: 'middle', position: [0,   0, 2.2], scale: 1.1,  baseRotation: [Math.PI / 2, 0, 0] },    // finger3: middle - horizontal extension
-      { name: 'ring',   position: [-0.9, 0, 2.1], scale: 0.97, baseRotation: [Math.PI / 2, 0, 0] },   // finger4: ring - horizontal extension
-      { name: 'pinky',  position: [-1.7, 0, 1.8], scale: 0.82, baseRotation: [Math.PI / 2, 0, -0.1] } // finger5: pinky - horizontal extension
+      // Left-hand layout (viewer facing dorsal/back of left hand): pinky on the left, thumb on the right
+      { name: 'thumb',  position: [1.9, 0, 0.6], scale: 0.9,  baseRotation: [Math.PI / 2, 0, -0.6] }, // finger1: thumb - on right side, spread angle tilts inward toward palm
+      { name: 'index',  position: [0.9, 0, 2.1], scale: 1.0,  baseRotation: [Math.PI / 2, 0, 0] },    // finger2: index - next to thumb
+      { name: 'middle', position: [0,   0, 2.2], scale: 1.1,  baseRotation: [Math.PI / 2, 0, 0] },    // finger3: middle - centered
+      { name: 'ring',   position: [-0.9, 0, 2.1], scale: 0.97, baseRotation: [Math.PI / 2, 0, 0] },   // finger4: ring
+      { name: 'pinky',  position: [-1.7, 0, 1.8], scale: 0.82, baseRotation: [Math.PI / 2, 0, 0.1] }  // finger5: pinky - leftmost, slight outward tilt
     ];
 
     fingerGroupsRef.current = [];

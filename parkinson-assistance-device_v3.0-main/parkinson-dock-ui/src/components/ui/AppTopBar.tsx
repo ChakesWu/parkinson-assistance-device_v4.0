@@ -26,7 +26,7 @@ export default function AppTopBar({ showBack }: AppTopBarProps) {
   });
 
   return (
-    <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 shadow-sm z-20 relative">
+    <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 shadow-sm z-20 sticky top-0">
       {/* Left */}
       <div className="flex items-center gap-3">
         {showBack && (
