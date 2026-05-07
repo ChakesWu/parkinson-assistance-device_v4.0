@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Brain, Download, Trash2, Filter, Upload, RefreshCw } from 'lucide-react';
 import { analysisRecordService, AnalysisRecord, AnalysisStatistics } from '@/services/analysisRecordService';
+import AppTopBar from '@/components/ui/AppTopBar';
 
 
 export default function RecordsPage() {
@@ -232,8 +233,9 @@ export default function RecordsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900">
-      <main className="container mx-auto py-12 px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 flex flex-col">
+      <AppTopBar showBack />
+      <main className="flex-1 container mx-auto py-12 px-4">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">AI Analysis Records</h1>
           <div className="flex gap-2">

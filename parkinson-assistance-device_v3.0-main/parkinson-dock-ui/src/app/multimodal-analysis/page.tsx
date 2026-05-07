@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useGlobalConnection } from '@/hooks/useGlobalConnection';
 import { getRecommendations, classifySeverity } from '@/lib/ai/recommendations';
 import { analysisRecordService } from '@/services/analysisRecordService';
+import AppTopBar from '@/components/ui/AppTopBar';
 
 type SensorSnapshot = {
   fingerPositions: number[];
@@ -190,8 +191,9 @@ export default function MultimodalAnalysisPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900">
-      <main className="container mx-auto py-12 px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 flex flex-col">
+      <AppTopBar showBack />
+      <main className="flex-1 container mx-auto py-12 px-4">
         <div className="flex gap-4 items-stretch min-h-[70vh]">
           <Sidebar>
             <SidebarBody>

@@ -1,10 +1,12 @@
 'use client';
 import React from 'react';
+import AppTopBar from '@/components/ui/AppTopBar';
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900">
-      <main className="container mx-auto px-4 py-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 flex flex-col">
+      <AppTopBar showBack />
+      <main className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-3xl mx-auto bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">作品简介</h1>
           <p className="text-gray-700 dark:text-gray-300 leading-7">

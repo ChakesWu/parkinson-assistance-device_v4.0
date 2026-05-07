@@ -36,4 +36,20 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  transition: padding-right 250ms ease;
+}
+
+/* Notion-style side panel: when device panel is open on desktop,
+   shrink the body's content area so the main view and panel sit
+   side-by-side with no overlap. */
+@media (min-width: 768px) {
+  body.device-panel-open {
+    padding-right: var(--panel-width, 400px);
+  }
+}
+
+/* While the user is dragging the panel handle, use a very fast
+   transition so the body width tracks the cursor smoothly. */
+body.panel-resizing {
+  transition: padding-right 150ms ease-in-out !important;
 }

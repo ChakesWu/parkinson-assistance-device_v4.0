@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { BluetoothManager, SensorData, AIResult } from '@/utils/bluetoothManager';
+import AppTopBar from '@/components/ui/AppTopBar';
 
 export default function BluetoothDebugPage() {
   const [isConnected, setIsConnected] = useState(false);
@@ -98,8 +99,9 @@ export default function BluetoothDebugPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 flex flex-col">
+      <AppTopBar showBack />
+      <div className="flex-1 max-w-6xl mx-auto w-full p-6">
         <h1 className="text-3xl font-bold mb-8 text-center">蓝牙连接调试工具</h1>
         
         {/* 连接控制 */}

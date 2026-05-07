@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import AppTopBar from '@/components/ui/AppTopBar';
 
 interface SensorData {
   fingers?: number[];
@@ -42,8 +43,9 @@ export default function DebugPage() {
   } : { x: 0, y: 0, z: 0 };
 
   return (
-    <div className="relative min-h-screen">
-      <div className="p-6 max-w-4xl mx-auto">
+    <div className="min-h-screen flex flex-col">
+      <AppTopBar showBack />
+      <div className="flex-1 p-6 max-w-4xl mx-auto w-full">
         <h1 className="text-3xl font-bold mb-6">調試信息</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

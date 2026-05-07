@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useRef } from 'react';
+import AppTopBar from '@/components/ui/AppTopBar';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
@@ -61,7 +62,12 @@ const HandModelPage = () => {
     };
   }, []);
 
-  return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
+  return (
+    <div className="min-h-screen flex flex-col">
+      <AppTopBar showBack />
+      <div ref={mountRef} className="flex-1" style={{ width: '100%' }} />
+    </div>
+  );
 };
 
 export default HandModelPage;

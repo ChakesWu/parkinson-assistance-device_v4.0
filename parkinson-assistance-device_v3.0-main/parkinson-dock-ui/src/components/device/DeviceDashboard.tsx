@@ -30,7 +30,7 @@ const FINGER_LABELS = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky'];
 export default function DeviceDashboard({ variant = 'page' }: DeviceDashboardProps) {
   const [sensorData, setSensorData] = useState<SensorData | null>(null);
   const [controlMode, setControlMode] = useState<'mouse' | 'imu'>('mouse');
-  const [motionExpanded, setMotionExpanded] = useState(false);
+  const [motionExpanded, setMotionExpanded] = useState(true);
 
   const handleData = (data: SensorData) => {
     setSensorData((prev) => ({ ...(prev ?? {} as SensorData), ...data }));
@@ -172,16 +172,20 @@ export default function DeviceDashboard({ variant = 'page' }: DeviceDashboardPro
         </div>
 
         {/* Label */}
-        <div className="absolute top-3 left-3 z-10 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+        <div className="absolute top-3 left-3 z-10 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide pointer-events-none">
           3D Hand Model
         </div>
 
         <div className={`w-full ${modelHeight}`}>
           <SimpleHand3D
-            sensorData={{
-              fingers,
-              rotation: controlMode === 'imu' ? rotation : { x: 0, y: 0, z: 0 },
-            }}
+            sensorData={
+              sensorData
+                ? {
+                    fingers,
+                    rotation: controlMode === 'imu' ? rotation : { x: 0, y: 0, z: 0 },
+                  }
+                : null
+            }
           />
         </div>
       </section>

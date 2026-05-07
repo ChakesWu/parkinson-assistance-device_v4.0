@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Activity, Gamepad2, Pause, Play, RotateCcw, Target, Trophy, Zap } from 'lucide-react';
+import AppTopBar from '@/components/ui/AppTopBar';
 import { useGlobalConnection } from '@/hooks/useGlobalConnection';
 import { type SensorData } from '@/utils/bluetoothManager';
 
@@ -190,8 +191,9 @@ export default function RehabGamePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white antialiased">
-      <main className="container mx-auto px-4 py-8 pb-28">
+    <div className="min-h-screen bg-slate-950 text-white antialiased flex flex-col">
+      <AppTopBar showBack />
+      <main className="flex-1 container mx-auto px-4 py-8 pb-28">
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-medium leading-6 tracking-wide text-cyan-200">

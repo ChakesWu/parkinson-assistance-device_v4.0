@@ -5,6 +5,7 @@ import { Sidebar, SidebarBody, SidebarLink } from '@/components/ui/sidebar';
 import GlobalConnector from '@/components/device/GlobalConnector';
 import { useGlobalConnection } from '@/hooks/useGlobalConnection';
 import { Activity, Brain, Home, Settings, Book } from 'lucide-react';
+import AppTopBar from '@/components/ui/AppTopBar';
 
 export default function VoiceAnalysisPage() {
   const [isVoiceAnalyzing, setIsVoiceAnalyzing] = useState(false);
@@ -86,8 +87,9 @@ export default function VoiceAnalysisPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900">
-      <main className="container mx-auto py-12 px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 flex flex-col">
+      <AppTopBar showBack />
+      <main className="flex-1 container mx-auto py-12 px-4">
         <div className="flex gap-4 items-stretch min-h-[70vh]">
           <Sidebar>
             <SidebarBody>
