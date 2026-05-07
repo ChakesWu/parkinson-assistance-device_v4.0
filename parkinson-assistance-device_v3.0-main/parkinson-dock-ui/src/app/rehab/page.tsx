@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Activity, Fish, Gamepad2, Lock, Sprout } from 'lucide-react';
+import { Activity, Fish, Gamepad2, Lock, LockOpen, Sprout } from 'lucide-react';
 import AppTopBar from '@/components/ui/AppTopBar';
 import { rehabSessionService } from '@/services/rehabSessionService';
 import { rewardsService, type RewardsState } from '@/services/rewardsService';
@@ -52,16 +52,33 @@ const GAMES: MiniGameDef[] = [
   },
 ];
 
+const DEMO_UNLOCK_KEY = 'steadigrip_demo_unlock_all';
+
 export default function RehabHubPage() {
   const [rewards, setRewards] = useState<RewardsState | null>(null);
   const [totalSessions, setTotalSessions] = useState(0);
   const [questSnapshot, setQuestSnapshot] = useState<DailyQuestSnapshot | null>(null);
+  const [demoUnlock, setDemoUnlock] = useState(false);
 
   useEffect(() => {
     setRewards(rewardsService.getState());
     setTotalSessions(rehabSessionService.getAllSessions().length);
     setQuestSnapshot(dailyQuestsService.getToday({ recompute: true }));
+    try {
+      setDemoUnlock(localStorage.getItem(DEMO_UNLOCK_KEY) === '1');
+    } catch { /* ignore */ }
   }, []);
+
+  const toggleDemoUnlock = () => {
+    setDemoUnlock((prev) => {
+      const next = !prev;
+      try {
+        if (next) localStorage.setItem(DEMO_UNLOCK_KEY, '1');
+        else localStorage.removeItem(DEMO_UNLOCK_KEY);
+      } catch { /* ignore */ }
+      return next;
+    });
+  };
 
   if (!rewards) {
     return <div className="min-h-screen bg-gray-50 dark:bg-neutral-950" />;
@@ -79,6 +96,39 @@ export default function RehabHubPage() {
           <p className="mt-2 text-gray-600 dark:text-gray-300">
             Each mini-game targets a different motor skill. New games unlock as you build a streak.
           </p>
+        </div>
+
+        {/* Demo unlock toggle — bypasses streak/session gating for demos & judging. */}
+        <div className={`mb-6 flex items-center justify-between gap-3 rounded-2xl border p-3 ${
+          demoUnlock
+            ? 'border-amber-300 dark:border-amber-700/50 bg-amber-50 dark:bg-amber-900/20'
+            : 'border-dashed border-gray-300 dark:border-neutral-700 bg-white/70 dark:bg-neutral-900/60'
+        }`}>
+          <div className="flex items-center gap-3 min-w-0">
+            <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${
+              demoUnlock ? 'bg-amber-500 text-white' : 'bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-gray-400'
+            }`}>
+              {demoUnlock ? <LockOpen size={16} /> : <Lock size={16} />}
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-gray-900 dark:text-white">Demo mode</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {demoUnlock
+                  ? 'All mini-games unlocked for showcase. Progress gating bypassed.'
+                  : 'Unlock every mini-game without needing a streak (for demos).'}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={toggleDemoUnlock}
+            className={`flex-shrink-0 rounded-xl px-3 py-2 text-sm font-semibold transition ${
+              demoUnlock
+                ? 'bg-amber-500 text-white hover:bg-amber-400'
+                : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90'
+            }`}
+          >
+            {demoUnlock ? 'Lock again' : 'Unlock all'}
+          </button>
         </div>
 
         {/* Today's quests preview */}
@@ -112,8 +162,8 @@ export default function RehabHubPage() {
             <GameCard
               key={g.id}
               def={g}
-              unlocked={isUnlocked(g, rewards, totalSessions)}
-              progressLabel={progressLabel(g, rewards, totalSessions)}
+              unlocked={demoUnlock || isUnlocked(g, rewards, totalSessions)}
+              progressLabel={demoUnlock ? null : progressLabel(g, rewards, totalSessions)}
             />
           ))}
         </div>
