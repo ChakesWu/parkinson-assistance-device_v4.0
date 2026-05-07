@@ -17,7 +17,7 @@ export interface AppTopBarProps {
  */
 export default function AppTopBar({ showBack }: AppTopBarProps) {
   const { isConnected } = useConnectionState();
-  const { panelOpen, togglePanel, setSettingsOpen } = useDevicePanel();
+  const { panelOpen, togglePanel, setSettingsOpen, blinkDevice } = useDevicePanel();
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'short',
@@ -38,12 +38,6 @@ export default function AppTopBar({ showBack }: AppTopBarProps) {
             <ArrowLeft size={16} />
           </Link>
         )}
-        <Link
-          href="/"
-          className="font-semibold text-gray-900 dark:text-white tracking-tight hover:opacity-80 transition"
-        >
-          SteadiGrip
-        </Link>
       </div>
 
       {/* Right */}
@@ -64,7 +58,7 @@ export default function AppTopBar({ showBack }: AppTopBarProps) {
             panelOpen
               ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300'
               : 'bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-200 hover:shadow-sm'
-          }`}
+          } ${blinkDevice ? 'animate-device-blink' : ''}`}
         >
           <span className={`h-2 w-2 rounded-full flex-shrink-0 ${isConnected ? 'bg-green-500' : 'bg-red-400'}`} />
           <Activity size={14} />

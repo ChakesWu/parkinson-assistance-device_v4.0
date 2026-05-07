@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Pencil, User, Users } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Calendar, Pencil, Trash2, User, Users } from 'lucide-react';
 import AppTopBar from '@/components/ui/AppTopBar';
 import MdsUpdrsCard from '@/components/profile/MdsUpdrsCard';
 import RecordsList from '@/components/profile/RecordsList';
@@ -16,8 +17,17 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const handleDelete = () => {
+    localStorage.removeItem('steadigrip_user_profile');
+    setProfile(null);
+    setConfirmDelete(false);
+    router.push('/');
+  };
 
   useEffect(() => {
     const raw = localStorage.getItem('steadigrip_user_profile');
@@ -60,13 +70,22 @@ export default function ProfilePage() {
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white truncate">
                       {profile.name || 'Unnamed'}
                     </h2>
-                    <Link
-                      href="/profile/edit"
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
-                    >
-                      <Pencil size={14} />
-                      Edit
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href="/profile/edit"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
+                      >
+                        <Pencil size={14} />
+                        Edit
+                      </Link>
+                      <button
+                        onClick={() => setConfirmDelete(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                      >
+                        <Trash2 size={14} />
+                        Delete
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -118,6 +137,35 @@ export default function ProfilePage() {
 
         {/* Divider */}
         <hr className="border-gray-200 dark:border-neutral-700 mb-8" />
+
+        {/* Delete confirmation dialog */}
+        {confirmDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-neutral-700 p-6 w-full max-w-sm">
+              <div className="text-4xl mb-3 text-center">⚠️</div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white text-center mb-2">
+                Delete Profile?
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
+                This will permanently remove your profile data. This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-neutral-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition"
+                >
+                  Yes, Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Records section */}
         <section>

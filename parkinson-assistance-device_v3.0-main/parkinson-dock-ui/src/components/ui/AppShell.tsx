@@ -13,6 +13,7 @@ interface DevicePanelCtx {
   togglePanel: () => void;
   settingsOpen: boolean;
   setSettingsOpen: (v: boolean) => void;
+  blinkDevice: boolean;
 }
 
 const Ctx = createContext<DevicePanelCtx | null>(null);
@@ -27,6 +28,7 @@ export function useDevicePanel(): DevicePanelCtx {
       togglePanel: () => {},
       settingsOpen: false,
       setSettingsOpen: () => {},
+      blinkDevice: false,
     };
   }
   return v;
@@ -43,9 +45,10 @@ const DEFAULT_WIDTH = 400;
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { isConnected } = useConnectionState();
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [panelOpen, setPanelOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [hasOpenedPanel, setHasOpenedPanel] = useState(false);
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH);
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -53,10 +56,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
+    const update = (mobile: boolean) => {
+      setIsMobile(mobile);
+      if (!mobile) setPanelOpen(true); // desktop: open by default
+    };
+    update(mq.matches);
+    const listener = (e: MediaQueryListEvent) => update(e.matches);
+    mq.addEventListener('change', listener);
+    return () => mq.removeEventListener('change', listener);
   }, []);
 
   // Notion-style split: push body content using a CSS variable for live width
@@ -106,12 +113,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const togglePanel = () => {
+    const next = !panelOpen;
+    setPanelOpen(next);
+    if (next) setHasOpenedPanel(true);
+  };
+
   const ctx: DevicePanelCtx = {
     panelOpen,
     setPanelOpen,
-    togglePanel: () => setPanelOpen(!panelOpen),
+    togglePanel,
     settingsOpen,
     setSettingsOpen,
+    blinkDevice: isMobile && !hasOpenedPanel,
   };
 
   return (

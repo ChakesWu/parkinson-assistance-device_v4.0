@@ -53,3 +53,32 @@ body {
 body.panel-resizing {
   transition: padding-right 150ms ease-in-out !important;
 }
+
+/* News ticker animation */
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes ticker-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+.animate-ticker-slow {
+  animation: ticker 320s linear infinite;
+}
+
+.animate-ticker-reverse {
+  animation: ticker-reverse 320s linear infinite;
+}
+
+/* Device button blink hint on mobile — 3 pulses then stops */
+@keyframes device-blink {
+  0%, 100% { opacity: 1; box-shadow: none; }
+  50% { opacity: 0.6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.35); }
+}
+
+.animate-device-blink {
+  animation: device-blink 800ms ease-in-out 3;
+}
