@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AnimatedDock } from '@/components/ui/animated-dock';
-import { Home, Activity, Book, Settings, Brain, Download, Trash2, Filter, Calendar, Upload, RefreshCw } from 'lucide-react';
+import { Home, Activity, Book, Settings, Brain, Download, Trash2, Filter, Calendar, Upload, RefreshCw, Gamepad2 } from 'lucide-react';
 import { analysisRecordService, AnalysisRecord, AnalysisStatistics } from '@/services/analysisRecordService';
 
 
@@ -23,6 +23,10 @@ export default function RecordsPage() {
     {
       link: "/device",
       Icon: <Activity size={22} />,
+    },
+    {
+      link: "/rehab-game",
+      Icon: <Gamepad2 size={22} />,
     },
     {
       link: "/records",

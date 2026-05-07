@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { AnimatedDock } from "@/components/ui/animated-dock";
-import { Home, Activity, Book, Settings, Brain } from 'lucide-react';
+import { Home, Activity, Book, Settings, Brain, Gamepad2 } from 'lucide-react';
 
 interface SensorData {
   fingers?: number[];
@@ -24,6 +24,10 @@ export default function DebugPage() {
     {
       link: "/device",
       Icon: <Activity size={22} />,
+    },
+    {
+      link: "/rehab-game",
+      Icon: <Gamepad2 size={22} />,
     },
     {
       link: "/records",

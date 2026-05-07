@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AnimatedDock } from "@/components/ui/animated-dock";
-import { BrainCircuit, Home, Activity, Book, Settings, Brain } from 'lucide-react';
+import { BrainCircuit, Home, Activity, Book, Settings, Brain, Gamepad2 } from 'lucide-react';
 import { getRecommendations, classifySeverity } from '@/lib/ai/recommendations';
 import { analysisRecordService } from '@/services/analysisRecordService';
 import { Sidebar, SidebarBody, SidebarLink, useSidebar } from "@/components/ui/sidebar";
@@ -69,6 +69,7 @@ export default function AIAnalysisPage() {
   const dockItems = [
     { link: "/", Icon: <Home size={22} /> },
     { link: "/device", Icon: <Activity size={22} /> },
+    { link: "/rehab-game", Icon: <Gamepad2 size={22} /> },
     { link: "/records", Icon: <Book size={22} /> },
     { link: "/ai-analysis", Icon: <Brain size={22} /> },
     { link: "/settings", Icon: <Settings size={22} /> },

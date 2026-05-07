@@ -5,7 +5,7 @@ import { AnimatedDock } from "@/components/ui/animated-dock";
 import AnimatedCardDemo from "@/components/ui/animated-card-demo";
 import ParkinsonTestimonials from "@/components/ui/parkinson-testimonials";
 import SimpleLightweightIndicator from "@/components/device/SimpleLightweightIndicator";
-import { Home, Activity, Book, Settings, Brain } from 'lucide-react';
+import { Home, Activity, Book, Settings, Brain, Gamepad2 } from 'lucide-react';
 
 
 
@@ -18,6 +18,10 @@ export default function HomePage() {
     {
       link: "/device",
       Icon: <Activity size={22} />,
+    },
+    {
+      link: "/rehab-game",
+      Icon: <Gamepad2 size={22} />,
     },
     {
       link: "/records",

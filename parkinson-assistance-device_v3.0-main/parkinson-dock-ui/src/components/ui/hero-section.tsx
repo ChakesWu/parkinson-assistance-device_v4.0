@@ -141,7 +141,6 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
                 backdropFilter: "blur(20px)",
                 lineHeight: 1.25,
                 fontSize: "clamp(28px, 6vw, 60px)",
-                fontFamily: "'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Source Han Sans SC','Noto Sans CJK SC','WenQuanYi Micro Hei',sans-serif",
               }}
             >
               {(() => {

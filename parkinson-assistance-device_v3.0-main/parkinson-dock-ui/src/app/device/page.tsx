@@ -6,7 +6,7 @@ import { useConnectionState } from '@/hooks/useGlobalConnection';
 import { SensorData } from '@/utils/bluetoothManager';
 
 import { AnimatedDock } from "@/components/ui/animated-dock";
-import { Home, Activity, Book, Brain, Settings, MousePointer, Move3d } from 'lucide-react';
+import { Home, Activity, Book, Brain, Settings, MousePointer, Move3d, Gamepad2 } from 'lucide-react';
 import { useState } from 'react';
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -63,6 +63,10 @@ export default function DevicePage() {
     {
       link: "/device",
       Icon: <Activity size={22} />,
+    },
+    {
+      link: "/rehab-game",
+      Icon: <Gamepad2 size={22} />,
     },
     {
       link: "/records",

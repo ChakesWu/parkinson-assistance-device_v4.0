@@ -38,7 +38,3 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
-
-:where(body, button, input, select, textarea) {
-  font-family: 'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Source Han Sans SC','Noto Sans SC','Noto Sans CJK SC','WenQuanYi Micro Hei',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol',sans-serif;
-}
