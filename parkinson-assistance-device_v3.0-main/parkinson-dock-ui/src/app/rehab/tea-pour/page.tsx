@@ -186,7 +186,7 @@ export default function TeaPourPage() {
 
   // Visual: cup is centered. Tea fills cup. Bend gauge shows current bend with target band.
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-emerald-50 to-amber-50 dark:from-amber-950/30 dark:via-emerald-950/30 dark:to-amber-950/30 text-gray-900 dark:text-white antialiased flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white antialiased flex flex-col">
       <AppTopBar showBack />
       <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-8">
         <div className="mb-6">

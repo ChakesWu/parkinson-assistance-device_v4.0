@@ -205,7 +205,7 @@ export default function DeviceDashboard({ variant = 'page' }: DeviceDashboardPro
                 <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</div>
                 <div className="w-full h-1.5 bg-gray-100 dark:bg-neutral-700 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full transition-all duration-150"
+                    className="h-full bg-[#004E80] rounded-full transition-all duration-150"
                     style={{ width: `${pct}%` }}
                   />
                 </div>

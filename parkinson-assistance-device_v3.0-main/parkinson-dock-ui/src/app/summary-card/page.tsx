@@ -74,7 +74,7 @@ export default function SummaryCardPage() {
         <ReportCard snapshot={snapshot} />
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <button onClick={downloadPng} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-2.5 font-semibold text-white hover:opacity-90 transition">
+          <button onClick={downloadPng} className="inline-flex items-center gap-2 rounded-xl bg-[#004E80] px-4 py-2.5 font-semibold text-white hover:bg-[#003a61] transition">
             <Download size={16} /> Download as PNG
           </button>
           <button onClick={downloadJson} className="inline-flex items-center gap-2 rounded-xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 px-4 py-2.5 font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-800 transition">
@@ -99,7 +99,7 @@ function RangeBtn({ active, onClick, label }: { active: boolean; onClick: () => 
       onClick={onClick}
       className={`rounded-xl px-3 py-1.5 text-sm font-medium border transition ${
         active
-          ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white border-transparent'
+          ? 'bg-[#004E80] text-white border-transparent'
           : 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-neutral-800'
       }`}
     >
@@ -157,7 +157,7 @@ function ReportCard({ snapshot }: { snapshot: ReportSnapshot }) {
               <div key={finger} className="flex items-center gap-2 text-xs">
                 <span className="w-14 capitalize text-gray-700 dark:text-gray-200">{finger}</span>
                 <div className="flex-1 h-3 rounded-full bg-gray-100 dark:bg-neutral-800 overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-500" style={{ width: `${(reps / maxFingerReps) * 100}%` }} />
+                  <div className="h-full bg-[#004E80]" style={{ width: `${(reps / maxFingerReps) * 100}%` }} />
                 </div>
                 <span className="w-8 text-right text-gray-700 dark:text-gray-200">{reps}</span>
               </div>
@@ -172,7 +172,7 @@ function ReportCard({ snapshot }: { snapshot: ReportSnapshot }) {
             {snapshot.dailyReps.map((d) => (
               <div key={d.date} className="flex-1 flex flex-col items-center justify-end" title={`${d.date}: ${d.reps}`}>
                 <div
-                  className="w-full rounded-t bg-gradient-to-t from-emerald-500 to-cyan-400"
+                  className="w-full rounded-t bg-[#004E80]"
                   style={{ height: `${(d.reps / maxDayReps) * 100}%`, minHeight: d.reps > 0 ? '4px' : '0px' }}
                 />
               </div>

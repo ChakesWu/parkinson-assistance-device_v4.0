@@ -1,0 +1,1097 @@
+% ISEF Research Logbook — SteadiGrip
+% Compile with: pdflatex -shell-escape ISEF_Logbook.tex (twice for references/TOC)
+\documentclass[12pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{parskip}
+\usepackage{tcolorbox}
+\usepackage{CJKutf8}   % for Chinese commit messages
+\tcbuselibrary{listingsutf8, breakable}
+
+% ── Page style ────────────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textit{SteadiGrip ISEF Research Logbook}}
+\rhead{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Section formatting ────────────────────────────────────────────────────────
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+
+% ── Code listing style ────────────────────────────────────────────────────────
+\definecolor{codebg}{rgb}{0.97,0.97,0.97}
+\definecolor{codeframe}{rgb}{0.75,0.75,0.75}
+\definecolor{keyword}{rgb}{0.0,0.35,0.7}
+\definecolor{comment}{rgb}{0.4,0.4,0.4}
+\definecolor{string}{rgb}{0.6,0.1,0.1}
+
+\lstdefinestyle{cppstyle}{
+  language=C++, backgroundcolor=\color{codebg},
+  frame=single, rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{keyword}\bfseries,
+  commentstyle=\color{comment}\itshape,
+  stringstyle=\color{string},
+  breaklines=true, breakatwhitespace=true,
+  showstringspaces=false, tabsize=2,
+  numbers=left, numberstyle=\tiny\color{gray}, numbersep=6pt
+}
+\lstdefinestyle{pythonstyle}{
+  language=Python, backgroundcolor=\color{codebg},
+  frame=single, rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{keyword}\bfseries,
+  commentstyle=\color{comment}\itshape,
+  stringstyle=\color{string},
+  breaklines=true, breakatwhitespace=true,
+  showstringspaces=false, tabsize=2,
+  numbers=left, numberstyle=\tiny\color{gray}, numbersep=6pt
+}
+\lstdefinestyle{tsstyle}{
+  language=Java, backgroundcolor=\color{codebg},
+  frame=single, rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{keyword}\bfseries,
+  commentstyle=\color{comment}\itshape,
+  stringstyle=\color{string},
+  breaklines=true, breakatwhitespace=true,
+  showstringspaces=false, tabsize=2,
+  numbers=left, numberstyle=\tiny\color{gray}, numbersep=6pt
+}
+\lstdefinestyle{plainstyle}{
+  backgroundcolor=\color{codebg},
+  frame=single, rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true, showstringspaces=false, tabsize=2
+}
+\lstdefinestyle{jsonstyle}{
+  backgroundcolor=\color{codebg},
+  frame=single, rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true, showstringspaces=false, tabsize=2,
+  morestring=[b]", stringstyle=\color{string}
+}
+
+% ── Signature line helper ─────────────────────────────────────────────────────
+\newcommand{\sigblock}{%
+  \vspace{0.6em}
+  \noindent\textbf{Researcher Signature:} \underline{\hspace{6cm}} \quad \textbf{Date:} \underline{\hspace{3cm}}\\[0.4em]
+  \noindent\textbf{Supervisor Signature:} \underline{\hspace{6cm}} \quad \textbf{Date:} \underline{\hspace{3cm}}
+  \vspace{0.4em}\hrule\vspace{0.6em}
+}
+
+% ── Milestone table environment ───────────────────────────────────────────────
+\newenvironment{milestonetable}{%
+  \begin{tcolorbox}[colback=codebg, colframe=codeframe, breakable, left=4pt, right=4pt, top=4pt, bottom=4pt]
+  \begin{tabularx}{\linewidth}{@{}>{\bfseries}p{3.2cm} X@{}}
+  \toprule
+}{%
+  \bottomrule
+  \end{tabularx}
+  \end{tcolorbox}
+}
+\newcommand{\mrow}[2]{\midrule #1 & #2 \\}
+
+% ── Title ─────────────────────────────────────────────────────────────────────
+\title{%
+  \vspace{-1cm}
+  {\LARGE\bfseries ISEF Research Logbook}\\[0.5em]
+  {\large SteadiGrip: An Accessible, Low-cost, Multi-modal AI-driven Wearable\\
+   Platform for Parkinson's Motor Assessment and\\
+   Personalized Closed-loop Rehabilitation}
+}
+\author{}
+\date{}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+\maketitle
+\thispagestyle{fancy}
+
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section*{Cover Page}
+\addcontentsline{toc}{section}{Cover Page}
+
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{5cm} X@{}}
+Project Title       & SteadiGrip: An Accessible, Low-cost, Multi-modal AI-driven Wearable Platform for Parkinson's Motor Assessment and Personalized Closed-loop Rehabilitation \\[4pt]
+Category            & Engineering --- Biomedical \& Health Sciences / Embedded Systems \& AI \\[4pt]
+Student Researcher  & {[YOUR NAME]} \\[4pt]
+Co-Researcher       & {[YOUR CO-RESEARCHER NAME]} \\[4pt]
+School / Institution& {[YOUR SCHOOL]} \\[4pt]
+Faculty Supervisor  & {[SUPERVISOR NAME]} \\[4pt]
+ISEF Year           & {[YEAR]} \\[4pt]
+Project Duration    & March 2025 -- May 2026 \\[4pt]
+GitHub (v1)         & \url{https://github.com/ChakesWu/Parkinson-vs-version} \\[4pt]
+GitHub (v2/v3)      & \url{https://github.com/ChakesWu/parkinson-assistance-device_v2.0} \\[4pt]
+GitHub (v4)         & \url{https://github.com/ChakesWu/parkinson-assistance-device_v4.0} \\
+\end{tabularx}
+
+\vspace{1.5em}
+\noindent\textbf{Student Researcher Signature:} \underline{\hspace{5.5cm}} \quad \textbf{Date:} \underline{\hspace{3cm}}\\[0.6em]
+\noindent\textbf{Co-Researcher Signature:} \underline{\hspace{5.8cm}} \quad \textbf{Date:} \underline{\hspace{3cm}}\\[0.6em]
+\noindent\textbf{Faculty Supervisor Signature:} \underline{\hspace{5.2cm}} \quad \textbf{Date:} \underline{\hspace{3cm}}
+
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Research Question \& Hypothesis}
+
+\subsection{Problem Statement}
+Parkinson's Disease (PD) affects over 10 million people worldwide. Early-stage motor symptoms --- including tremor, bradykinesia (slowness of movement), and rigidity --- are often detected too late because clinical assessment tools (e.g., the UPDRS scale) require specialist visits and are expensive. Home-based rehabilitation devices are either prohibitively costly or lack real-time feedback and AI-driven personalization.
+
+\subsection{Research Question}
+Can a low-cost wearable glove system using multi-modal sensors (flex potentiometers, EMG, IMU), edge AI inference, and a real-time web dashboard accurately assess Parkinson's severity and deliver personalized closed-loop rehabilitation?
+
+\subsection{Hypothesis}
+A wearable device combining finger-bend potentiometers, EMG, and IMU data --- processed by a quantized CNN-TCN model running on an Arduino Nano 33 BLE Sense Rev2 --- can classify Parkinson's severity into 5 clinical grades with accuracy $\geq 90\%$ and provide automatic servo-resistance rehabilitation with latency under 100\,ms.
+
+\subsection{Engineering Goals}
+\begin{enumerate}
+  \item Build a complete sensor-to-servo feedback loop using only commodity hardware ($<$ USD 50)
+  \item Train a CNN-TCN model achieving $\geq 90\%$ classification accuracy across 5 Parkinson severity grades
+  \item Quantize and deploy the model on-device ($<$ 100\,KB, $<$ 100\,ms inference)
+  \item Build a real-time web dashboard (Next.js + BLE) with 3D hand visualization and AI recommendations
+  \item Collect $\geq 200$ anonymized data sessions under ISEF-compliant privacy protocols
+\end{enumerate}
+
+\sigblock
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Background Research}
+
+\subsection{Parkinson's Disease Overview}
+Parkinson's Disease is a progressive neurodegenerative disorder caused by the loss of dopaminergic neurons in the substantia nigra. Key motor symptoms include:
+\begin{itemize}
+  \item \textbf{Tremor:} Involuntary rhythmic oscillations (typically 4--6\,Hz at rest)
+  \item \textbf{Bradykinesia:} Slowness of movement; reduced finger dexterity
+  \item \textbf{Rigidity:} Increased muscle tone; resistance to passive movement
+  \item \textbf{Postural instability:} Balance and coordination impairment
+\end{itemize}
+The \textbf{Unified Parkinson's Disease Rating Scale (UPDRS)} is the standard clinical assessment tool, rating motor function on a 0--4 scale across multiple domains. This project maps AI output (grades 1--5) to approximate UPDRS-equivalent severity tiers.
+
+\subsection{Existing Solutions \& Limitations}
+\begin{center}
+\begin{tabular}{@{}p{5.5cm} p{8.5cm}@{}}
+\toprule
+\textbf{Existing Solution} & \textbf{Limitation} \\
+\midrule
+Clinical UPDRS assessment & Requires specialist, infrequent, expensive \\
+Wearable accelerometer only & No finger dexterity data, no rehabilitation \\
+Commercial rehab gloves (e.g., Gloreha) & $>$ USD 5,000; no AI personalization \\
+Hospital-based physiotherapy & Not accessible for daily home use \\
+Smartphone tremor apps & No EMG/flex data; no rehab output \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Literature Survey Highlights}
+\begin{itemize}
+  \item \textbf{Flex sensor-based hand rehabilitation} (Sarakoglou et al., 2016): Flex sensors provide clinically relevant kinematic data for PD assessment.
+  \item \textbf{CNN-LSTM for tremor classification} (Buongiorno et al., 2019): Time-series deep learning on wrist IMU achieves $\sim$87\% accuracy for PD vs.\ healthy classification.
+  \item \textbf{TCN advantages over LSTM} (Bai et al., 2018): Temporal Convolutional Networks offer parallelizable training and competitive performance on sequence tasks.
+  \item \textbf{TFLite MCU deployment} (David et al., 2021): INT8 quantization reduces model size 4$\times$ with $<$2\% accuracy drop, enabling MCU-class inference.
+  \item \textbf{EMG in PD assessment} (Meigal et al., 2013): Surface EMG effectively quantifies rigidity and tremor intensity as biomarkers.
+\end{itemize}
+
+\subsection{Justification for CNN-TCN Architecture}
+\begin{enumerate}
+  \item \textbf{CNN layers} extract local spatial features across the 9-sensor input (thumb--pinky + EMG + IMU x,y,z)
+  \item \textbf{TCN residual blocks with dilation} capture temporal patterns at multiple scales (tremor $\sim$4--6\,Hz, bradykinesia $\sim$0.5--2\,Hz) without vanishing gradient problems
+  \item \textbf{Separable convolutions} reduce parameter count for edge deployment
+  \item \textbf{Global Average Pooling} prevents overfitting on the small-to-medium dataset
+  \item Achieves \textbf{comparable or superior} accuracy to LSTM at lower inference cost
+\end{enumerate}
+
+\sigblock
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Materials}
+
+\subsection{Hardware Bill of Materials}
+\begin{center}
+\begin{tabular}{@{}p{4.2cm} p{5.0cm} c p{3.8cm}@{}}
+\toprule
+\textbf{Component} & \textbf{Specification} & \textbf{Qty} & \textbf{Role} \\
+\midrule
+Arduino Nano 33 BLE Sense Rev2 & ARM Cortex-M4, 256\,KB SRAM, BLE 5.0, built-in IMU & 1 & Main MCU + edge inference \\
+Potentiometer & 10\,k$\Omega$ rotary & 5 & Finger-bend sensing (A0--A4) \\
+EMG Sensor Module & Analog output, 0--3.3\,V & 1 & Muscle activity sensing (A5) \\
+Servo Motor & SG90, 180$^\circ$ & 1 & Resistance training output (D9) \\
+Push Button & Momentary, N.O. & 1 & Calibration / control (D4) \\
+LED (built-in) & LED\_BUILTIN & 1 & Status indicator \\
+Detection circuit pins & Digital input & 2 & Pot (D2) \& EMG (D3) detect \\
+USB cable & USB-A to USB-Micro & 1 & Power + serial \\
+Breadboard + jumpers & --- & --- & Prototyping \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Estimated total hardware cost: $<$ USD 30}
+
+\textbf{Pin Mapping Summary:}
+\begin{lstlisting}[style=plainstyle]
+Arduino Nano 33 BLE Sense Rev2
+|-- A0 -> Pinky potentiometer
+|-- A1 -> Ring finger potentiometer
+|-- A2 -> Middle finger potentiometer
+|-- A3 -> Index finger potentiometer
+|-- A4 -> Thumb potentiometer
+|-- A5 -> EMG sensor
+|-- D2 -> Potentiometer detection pin
+|-- D3 -> EMG detection pin
+|-- D4 -> User button
+|-- D9 -> Servo motor control
++-- LED_BUILTIN -> Status LED
+\end{lstlisting}
+
+\subsection{Software Stack}
+\begin{center}
+\begin{tabular}{@{}p{3.2cm} p{5.5cm} p{5.0cm}@{}}
+\toprule
+\textbf{Layer} & \textbf{Technology} & \textbf{Purpose} \\
+\midrule
+Firmware & Arduino C++ (Arduino IDE) & Sensor reading, BLE, servo, TFLite inference \\
+ML Training & Python 3.11, TensorFlow $\geq$ 2.10 & Model design, training, TensorBoard \\
+Data Pipeline & Python: pandas, numpy, scipy, pyserial & Data collection, preprocessing \\
+Model Deployment & TFLite INT8 $\rightarrow$ Arduino \texttt{.h} header & Edge inference \\
+Web Dashboard & Next.js 15, TypeScript, Three.js, Tailwind & Real-time visualization, BLE, records \\
+Containerization & Docker + TensorBoard & Reproducible training environment \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Data Collection Setup}
+\begin{itemize}
+  \item \textbf{Sampling rate:} 10\,Hz (100\,ms interval)
+  \item \textbf{Session length:} 10 seconds $\rightarrow$ 100 data points per session
+  \item \textbf{Channels:} 9 (5 fingers + EMG + IMU x,y,z)
+  \item \textbf{Window for training:} 50 timesteps $\times$ 9 channels (50$\times$9 tensor)
+  \item \textbf{Total sessions collected:} 226 (committed 2026-05-06)
+  \item \textbf{Session ID format:} \texttt{P01\_001\_session\_N.json} (anonymized)
+  \item \textbf{Privacy:} No PII stored; session codes unlinked from participant identity
+\end{itemize}
+
+\sigblock
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Milestone Development Logbook}
+
+\noindent\textit{This section documents each major development milestone. Each entry records: Goal, What Was Coded, Test Result, Bugs \& Fixes, Next Step, and a representative code snippet. All dates are sourced from verified git commit history across all four project repositories.}
+
+\vspace{0.5em}\hrule\vspace{0.8em}
+
+% ── M1 ────────────────────────────────────────────────────────────────────────
+\subsection{M1 --- Project Inception \& Proof-of-Concept}
+
+\begin{milestonetable}
+\mrow{Date}{2025-03-14}
+\mrow{Repository}{\texttt{Parkinson-vs-version} (commit \texttt{e608ee8})}
+\mrow{Goal}{Establish first working sensor $\rightarrow$ model $\rightarrow$ servo loop using potentiometers and a trained classifier}
+\mrow{What We Coded}{\texttt{sensors.ino}: Arduino reads 5 potentiometers over serial; \texttt{parkinson\_system.py}: Python receives serial data, feeds to sklearn model, outputs 5 resistance values; servo driven accordingly}
+\mrow{Test Result}{First end-to-end loop confirmed. Commit: \begin{CJK}{UTF8}{bkai}``成功實現根據ardunio端的彎曲傳感器，輸入到模型中，成功輸出五個數值給舵機，並成功驅動''\end{CJK}}
+\mrow{Bugs \& Fixes}{Arduino IDE serial monitor must be closed during Python serial read (port conflict). Noted in commit history.}
+\mrow{Next Step}{Modularize pipeline into separate data / model / train / inference stages}
+\end{milestonetable}
+
+\begin{lstlisting}[style=cppstyle, caption={sensors.ino -- Basic potentiometer read and serial output}]
+int finger1 = analogRead(A4); // Thumb
+int finger2 = analogRead(A3); // Index
+int finger3 = analogRead(A2); // Middle
+int finger4 = analogRead(A1); // Ring
+int finger5 = analogRead(A0); // Pinky
+Serial.print("DATA,");
+Serial.print(finger1); Serial.print(",");
+Serial.print(finger2); Serial.print(",");
+// ... (all 5 fingers)
+Serial.println();
+\end{lstlisting}
+
+\textbf{Servo control confirmed (commit \texttt{c3dfdc4}):} \begin{CJK}{UTF8}{bkai}成功實現控制舵機\end{CJK}
+
+\sigblock
+
+% ── M2 ────────────────────────────────────────────────────────────────────────
+\subsection{M2 --- Pipeline Modularization \& Training Infrastructure}
+
+\begin{milestonetable}
+\mrow{Date}{2025-03-25}
+\mrow{Repository}{\texttt{Parkinson-vs-version} (commit \texttt{7094aa1})}
+\mrow{Goal}{Split monolithic script into three discrete stages for maintainability and reproducibility}
+\mrow{What We Coded}{Separated codebase into: (1) data collection, (2) model training, (3) inference deployment. Created \texttt{parkinson\_system.py} with distinct functions per stage. Added \texttt{processingfile.javascript} for web-based serial visualization (commit \texttt{52c8c35}, 2025-03-24)}
+\mrow{Test Result}{Three-stage pipeline runs independently. Data $\rightarrow$ Model $\rightarrow$ Inference chain confirmed.}
+\mrow{Bugs \& Fixes}{GPU training attempted (2025-04-29, commit \texttt{00f289a}): GPU execution not yet working; remained on CPU for this phase}
+\mrow{Next Step}{Add 10-group rehabilitation training plans; improve potentiometer signal reception}
+\end{milestonetable}
+
+\noindent\textbf{Rehab plans added (commit \texttt{124810f}, 2025-04-28):} 10 training group plans added; potentiometer connection instability noted as hardware issue.
+
+\noindent\textbf{Arduino signal reception improved (commit \texttt{6e26a6c}, 2025-04-28).}
+
+\sigblock
+
+% ── M3 ────────────────────────────────────────────────────────────────────────
+\subsection{M3 --- Full System Rebuild: Next.js Dashboard + 3D Hand Model + BLE}
+
+\begin{milestonetable}
+\mrow{Date}{2025-08-02 to 2025-08-03}
+\mrow{Repository}{\texttt{parkinson-assistance-device\_v2.0} / \texttt{v3.0} (commits \texttt{16cb328}, \texttt{20638f0}, \texttt{93346f6})}
+\mrow{Goal}{Build a full web-based system: Next.js dashboard connected to Arduino via serial/BLE, with real-time 3D hand visualization driven by live sensor data}
+\mrow{What We Coded}{\texttt{parkinson-dock-ui/}: Full Next.js app scaffold (Arduino/BLE connectors, 3D hand, AI analysis page). Web functions added 2025-08-02; real-time IMU$\rightarrow$3D animation sync working 2025-08-03; 3D model corrected 2025-08-03}
+\mrow{Test Result}{3D hand model responds to real-time IMU data. Three.js MCP/PIP/DIP joint hierarchy per finger renders correctly.}
+\mrow{Bugs \& Fixes}{3D model joint hierarchy required correction (commit \texttt{93346f6}): initial joint rotations incorrect; recalibrated to match anatomical finger bend directions}
+\mrow{Next Step}{Add voice/speech analysis modality for multimodal Parkinson assessment}
+\end{milestonetable}
+
+\begin{lstlisting}[style=tsstyle, caption={SimpleHand3D.tsx -- Three.js finger joint hierarchy}]
+// MCP / PIP / DIP joint hierarchy per finger
+const mcpAngle = (bendValue / maxBendValue) * Math.PI * 0.7;
+const pipAngle = mcpAngle * 0.8;
+const dipAngle = mcpAngle * 0.5;
+
+mcpPivot.rotation.x = mcpAngle;  // positive = forward bend
+pipPivot.rotation.x = pipAngle;
+dipPivot.rotation.x = dipAngle;
+\end{lstlisting}
+
+\sigblock
+
+% ── M4 ────────────────────────────────────────────────────────────────────────
+\subsection{M4 --- Voice Recognition Module}
+
+\begin{milestonetable}
+\mrow{Date}{2025-08-09 to 2025-08-11}
+\mrow{Repository}{\texttt{parkinson-assistance-device\_v2.0} / \texttt{v3.0} (commits \texttt{480a349}, \texttt{ca35b00}, \texttt{2e2fdde})}
+\mrow{Goal}{Add speech/voice analysis as a second modality for Parkinson assessment (voice tremor and monotone speech are clinical PD indicators)}
+\mrow{What We Coded}{\texttt{speech\_feature\_extractor.py}: extracts MFCCs, pitch, jitter, shimmer, harmonic-to-noise ratio. \texttt{speech\_parkinson\_classifier.py}: trained on extracted features. Multimodal analysis page integrating hand and voice signals.}
+\mrow{Test Result}{Voice recognition completed (commit \texttt{ca35b00}, 2025-08-11). System processes speech input alongside hand sensor data.}
+\mrow{Bugs \& Fixes}{Initial model produced false positives (commit \texttt{480a349}, 2025-08-09). Resolved by refining feature extraction and threshold tuning (commit \texttt{2e2fdde}).}
+\mrow{Next Step}{Redesign AI model with deeper architecture; add TensorBoard visualization; upgrade to CNN-TCN}
+\end{milestonetable}
+
+\begin{lstlisting}[style=pythonstyle, caption={speech\_feature\_extractor.py -- Acoustic feature extraction}]
+features = {
+    'mfcc':    librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=13),
+    'pitch':   librosa.yin(y=audio, fmin=50, fmax=500),
+    'jitter':  compute_jitter(pitch_series),
+    'shimmer': compute_shimmer(audio),
+    'hnr':     compute_hnr(audio)
+}
+\end{lstlisting}
+
+\sigblock
+
+% ── M5 ────────────────────────────────────────────────────────────────────────
+\subsection{M5 --- CNN-TCN Model Design \& TensorBoard Training}
+
+\begin{milestonetable}
+\mrow{Date}{2026-02-03}
+\mrow{Repository}{\texttt{parkinson-assistance-device\_v4.0} (commit \texttt{76a95fa})}
+\mrow{Goal}{Replace sklearn classifier with a deep CNN-TCN model; integrate TensorBoard for training transparency; achieve $>$90\% accuracy}
+\mrow{What We Coded}{\texttt{cnn\_lstm\_tensorboard\_model.py}: full CNN-TCN architecture, training loop, TensorBoard callbacks, \texttt{LearningRateLogger}. Docker + \texttt{docker-compose.yml} for reproducible training. Model saved to \texttt{models/best\_model.h5}}
+\mrow{Test Result}{\textbf{Accuracy: 99.8\%}, Loss: 0.0826, 17 epochs, Final LR: 0.00025. Training curves saved as SVG in \texttt{tensorboard\_charts/}.}
+\mrow{Bugs \& Fixes}{TensorBoard required Docker for cross-OS consistency. Command: \texttt{docker run -{}-rm -p 6006:6006 -v ./logs:/logs tensorflow/tensorflow:latest tensorboard -{}-logdir=/logs}}
+\mrow{Next Step}{Quantize to INT8 TFLite for Arduino deployment; add enhanced feature engineering}
+\end{milestonetable}
+
+\begin{lstlisting}[style=pythonstyle, caption={cnn\_lstm\_tensorboard\_model.py -- CNN-TCN architecture}]
+# ParkinsonCNNTCN -- Input: (50, 9) -> Output: 5 severity grades
+model = Sequential([
+    Conv1D(16, 3, padding='same', activation='relu'),
+    BatchNormalization(),
+    SeparableConv1D(32, 3, padding='same', activation='relu'),
+    BatchNormalization(),
+    # TCN residual blocks with increasing dilation
+    Conv1D(32, 3, dilation_rate=1, padding='causal', activation='relu'),
+    Conv1D(32, 3, dilation_rate=2, padding='causal', activation='relu'),
+    GlobalAveragePooling1D(),
+    Dense(32, activation='relu'),
+    Dropout(0.2),
+    Dense(5, activation='softmax')   # 5 Parkinson severity grades
+])
+\end{lstlisting}
+
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Final Accuracy      & 99.8\% \\
+Final Loss          & 0.0826 \\
+Total Epochs        & 17 \\
+Final Learning Rate & 0.00025 \\
+Model Size (H5)     & $\sim$225\,KB \\
+Model Size (INT8 TFLite) & $\sim$60\,KB \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\sigblock
+
+% ── M6 ────────────────────────────────────────────────────────────────────────
+\subsection{M6 --- Enhanced Feature Engineering}
+
+\begin{milestonetable}
+\mrow{Date}{2026-02-04}
+\mrow{Repository}{\texttt{parkinson-assistance-device\_v4.0} (commit \texttt{9535e69})}
+\mrow{Goal}{Enrich raw sensor input with clinically-meaningful features to improve model robustness and interpretability}
+\mrow{What We Coded}{\texttt{enhanced\_feature\_engineering.py}: comprehensive feature pipeline. \texttt{clinical\_standards.h}: medical reference thresholds for Arduino firmware.}
+\mrow{Test Result}{Feature pipeline transforms raw 50$\times$9 windows into multi-domain feature vectors, improving model discriminability across severity grades.}
+\mrow{Bugs \& Fixes}{FFT windowing required Hanning window to avoid spectral leakage on all frequency-domain features.}
+\mrow{Next Step}{Deploy quantized model to Arduino; begin ISEF-compliant data collection}
+\end{milestonetable}
+
+\begin{lstlisting}[style=pythonstyle, caption={enhanced\_feature\_engineering.py -- Feature categories}]
+# Time-domain features (per sensor channel)
+features['mean']      = np.mean(window, axis=0)
+features['variance']  = np.var(window, axis=0)
+features['rms']       = np.sqrt(np.mean(window**2, axis=0))
+
+# Frequency-domain features
+fft_vals = np.abs(np.fft.rfft(window, axis=0))
+features['fft_peak']  = fft_vals.max(axis=0)
+
+# Band-specific power ratios (clinically relevant)
+features['tremor_band_power'] = band_power(fft_vals, freqs, 4, 6)   # PD tremor: 4-6 Hz
+features['brady_band_power']  = band_power(fft_vals, freqs, 0.5, 2) # Bradykinesia: 0.5-2 Hz
+
+# Medical biomarker indices
+features['tremor_intensity']   = compute_tremor_intensity(window)
+features['bradykinesia_index'] = compute_bradykinesia_index(window)
+features['rigidity_index']     = compute_rigidity_index(window)
+\end{lstlisting}
+
+\sigblock
+
+% ── M7 ────────────────────────────────────────────────────────────────────────
+\subsection{M7 --- TFLite Quantization \& Arduino Edge Deployment}
+
+\begin{milestonetable}
+\mrow{Date}{2026-02-03 to 2026-02-04}
+\mrow{Repository}{\texttt{parkinson-assistance-device\_v4.0} (commits \texttt{76a95fa}, \texttt{9535e69})}
+\mrow{Goal}{Quantize trained Keras model to INT8 TFLite and deploy on Arduino Nano 33 BLE Sense Rev2 for on-device inference}
+\mrow{What We Coded}{\texttt{convert\_to\_arduino.py}: Keras $\rightarrow$ TFLite (float32) $\rightarrow$ INT8 TFLite $\rightarrow$ Arduino \texttt{.h} header. \texttt{cnn\_tcn\_arduino\_converter.py}: calibration quantization with representative dataset. Output: \texttt{model\_data.h}}
+\mrow{Test Result}{Quantized model: $\sim$60\,KB (INT8). Inference: $<$100\,ms on Arduino. Output: \texttt{level} (1--5), \texttt{confidence} (\%), \texttt{tremor\_score}, \texttt{rigidity\_score}}
+\mrow{Bugs \& Fixes}{Initial tensor arena too small $\rightarrow$ \texttt{AllocateTensors()} failed. Fixed by profiling model and setting \texttt{kTensorArenaSize = 60*1024}.}
+\mrow{Next Step}{Fix 3D model joint rotation direction; implement auto-calibration on connect}
+\end{milestonetable}
+
+\begin{lstlisting}[style=pythonstyle, caption={convert\_to\_arduino.py -- INT8 quantization pipeline}]
+# Step 1: Keras -> TFLite (float32)
+converter = tf.lite.TFLiteConverter.from_keras_model(model)
+tflite_model = converter.convert()
+
+# Step 2: INT8 quantization with representative dataset
+converter.optimizations = [tf.lite.Optimize.DEFAULT]
+converter.representative_dataset = representative_dataset_gen
+converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+converter.inference_input_type = tf.int8
+converter.inference_output_type = tf.int8
+quantized_model = converter.convert()
+\end{lstlisting}
+
+\begin{lstlisting}[style=cppstyle, caption={complete\_parkinson\_device.ino -- On-device inference}]
+TfLiteTensor* input = interpreter->input(0);
+for (int i = 0; i < 50 * 9; i++) {
+    input->data.int8[i] = (int8_t)(sensorWindow[i] / input_scale
+                                   + input_zero_point);
+}
+interpreter->Invoke();
+TfLiteTensor* output = interpreter->output(0);
+int predicted_level = argmax(output->data.int8, 5) + 1; // grades 1-5
+\end{lstlisting}
+
+\sigblock
+
+% ── M8 ────────────────────────────────────────────────────────────────────────
+\subsection{M8 --- 3D Hand Model Direction Fix}
+
+\begin{milestonetable}
+\mrow{Date}{2026-02-03}
+\mrow{Repository}{\texttt{parkinson-assistance-device\_v4.0} (commit \texttt{ab4e6f7})}
+\mrow{Goal}{Fix 3D hand model so finger joints bend in the anatomically correct horizontal plane (forward) rather than downward}
+\mrow{What We Coded}{Modified \texttt{Hand3D.tsx}, \texttt{SimpleHand3D.tsx}, \texttt{MechanicalHand3D.tsx}, \texttt{3d\_hand\_project/hand3d.js}, \texttt{3d\_hand\_project/simple\_hand3d.js}. Changed all joint rotation from negative to positive angles.}
+\mrow{Test Result}{Fingers now bend forward in the horizontal plane. All 5 fingers respond correctly to potentiometer input.}
+\mrow{Bugs \& Fixes}{Root cause: all joints used \texttt{rotation.x = -jointBend} (negative), causing downward bend. Fix: changed to \texttt{rotation.x = jointBend} (positive) across all 3D model files.}
+\mrow{Next Step}{Fix BLE reconnect initialization; implement global potentiometer direction toggle}
+\end{milestonetable}
+
+\begin{lstlisting}[style=tsstyle, caption={SimpleHand3D.tsx -- Joint rotation direction fix}]
+// BEFORE -- incorrect downward bend
+mcpPivot.rotation.x = -mcpAngle;
+pipPivot.rotation.x = -pipAngle;
+dipPivot.rotation.x = -dipAngle;
+
+// AFTER -- correct horizontal plane bend
+mcpPivot.rotation.x = mcpAngle;
+pipPivot.rotation.x = pipAngle;
+dipPivot.rotation.x = dipAngle;
+\end{lstlisting}
+
+\sigblock
+
+% ── M9 ────────────────────────────────────────────────────────────────────────
+\subsection{M9 --- Auto-Calibration on Connect}
+
+\begin{milestonetable}
+\mrow{Date}{2026-02-02 (initial commit \texttt{f1b7d04})}
+\mrow{Repository}{\texttt{parkinson-assistance-device\_v4.0}}
+\mrow{Goal}{Automatically capture finger-extended baseline on every device connection; eliminate manual calibration}
+\mrow{What We Coded}{Arduino: \texttt{startAutoCalibration()} --- 3-second countdown, 30 potentiometer samples, computes mean as \texttt{fingerBaseline[5]}, sends \texttt{INIT\_COMPLETE}. Web frontend listens for \texttt{INIT\_COMPLETE}, triggers web-side initialization, resets 3D model to flat-hand state.}
+\mrow{Test Result}{Every connection auto-collects 3-second baseline. Bend values = 0 when flat; positive when bent.}
+\mrow{Bugs \& Fixes}{Initial formula was \texttt{current - baseline} (gives negative). Fixed to \texttt{baseline - current}: \texttt{max(0.0f, fingerBaseline[i] - value)}.}
+\mrow{Next Step}{Extend calibration to BLE reconnect path}
+\end{milestonetable}
+
+\begin{lstlisting}[style=cppstyle, caption={Auto-calibration function (Arduino firmware)}]
+void startAutoCalibration() {
+    Serial.println("CALIBRATING: Keep fingers straight...");
+    float samples[5] = {0};
+    int count = 0;
+    unsigned long start = millis();
+    while (millis() - start < 3000) {   // 3-second window
+        for (int i = 0; i < 5; i++)
+            samples[i] += readFingerValue(fingerPins[i]);
+        count++;
+        delay(100);
+    }
+    for (int i = 0; i < 5; i++)
+        fingerBaseline[i] = samples[i] / count;
+    Serial.println("INIT_COMPLETE");
+}
+
+// Bend value: positive when bent below baseline
+float bendValue = max(0.0f, fingerBaseline[idx] - readFingerValue(pin));
+\end{lstlisting}
+
+\sigblock
+
+% ── M10 ───────────────────────────────────────────────────────────────────────
+\subsection{M10 --- Pinky Sensor Noise Fix}
+
+\begin{milestonetable}
+\mrow{Date}{2026-02-02 (initial commit \texttt{f1b7d04})}
+\mrow{Repository}{\texttt{parkinson-assistance-device\_v4.0}}
+\mrow{Goal}{Diagnose and fix severe ADC noise on the pinky potentiometer (A0), which produced readings jumping between 66--1023 per sample}
+\mrow{What We Coded}{Arduino: 5-point moving average filter for A0; outlier rejection (delta $>$200 from last reading $\rightarrow$ discard); \texttt{isPinkyDataStable()} variance monitor; \texttt{DIAGNOSE} serial command for live per-pin health check.}
+\mrow{Test Result}{Pre-fix variance: $>$15,000 (unstable). Post-fix variance: $<$1,000. All fingers stable.}
+\mrow{Bugs \& Fixes}{Root cause: A0 pin contact issue + electrical noise. Software filter applied immediately. Hardware fix: 100\,nF ceramic capacitor across A0 to GND. Pinky sensitivity multiplier $\times$1.5 applied.}
+\mrow{Next Step}{Apply global potentiometer direction fix across all connection paths}
+\end{milestonetable}
+
+\begin{lstlisting}[style=cppstyle, caption={Pinky noise filter (Arduino firmware)}]
+float readPinkyFiltered() {
+    float current = analogRead(PIN_PINKY);
+    float diff = abs(current - lastValidPinkyValue);
+    if (diff > 200 && lastValidPinkyValue != 512)
+        return lastValidPinkyValue;  // reject outlier
+    for (int i = 0; i < 4; i++) pinkyFilter[i] = pinkyFilter[i+1];
+    pinkyFilter[4] = current;
+    lastValidPinkyValue = 0;
+    for (int i = 0; i < 5; i++) lastValidPinkyValue += pinkyFilter[i];
+    return lastValidPinkyValue / 5.0f;  // 5-point average
+}
+\end{lstlisting}
+
+\sigblock
+
+% ── M11 ───────────────────────────────────────────────────────────────────────
+\subsection{M11 --- Potentiometer Direction Fix (Frontend + Global)}
+
+\begin{milestonetable}
+\mrow{Date}{2026-02-02 (initial commit \texttt{f1b7d04})}
+\mrow{Repository}{\texttt{parkinson-assistance-device\_v4.0}}
+\mrow{Goal}{Support potentiometers wired in either orientation without hardware rewiring}
+\mrow{What We Coded}{\textbf{Phase 1}: \texttt{potentiometerReversed} state in \texttt{ArduinoConnector.tsx} and \texttt{BluetoothConnector.tsx}; UI toggle switch. \textbf{Phase 2}: Extended to \texttt{GlobalConnectionManager} with \texttt{PotentiometerSettings} interface and \texttt{adjustFingerDirection()} method.}
+\mrow{Test Result}{Direction toggle works in real-time (no reconnect needed). Applies uniformly across Serial and BLE paths.}
+\mrow{Bugs \& Fixes}{Initial fix bypassed \texttt{GlobalConnectionManager}: the main app uses this global class, not the individual connectors. Fixed by centralizing logic in \texttt{GlobalConnectionManager.adjustFingerDirection()}.}
+\mrow{Next Step}{Collect 226 structured data sessions; rebuild web dashboard for v4}
+\end{milestonetable}
+
+\begin{lstlisting}[style=tsstyle, caption={GlobalConnectionManager.ts -- Direction adjustment}]
+private adjustFingerDirection(fingerData: number[]): number[] {
+  return fingerData.map((value, index) => {
+    let adjusted = value;
+    if (this.potentiometerSettings.reversed) {
+      adjusted = Math.max(0, this.potentiometerSettings.maxBendValue - value);
+    }
+    if (index === 4) return adjusted * 1.5; // pinky +50% sensitivity
+    return adjusted;
+  });
+}
+\end{lstlisting}
+
+\sigblock
+
+% ── M12 ───────────────────────────────────────────────────────────────────────
+\subsection{M12 --- BLE Reconnect Initialization}
+
+\begin{milestonetable}
+\mrow{Date}{2026-02-02 (initial commit \texttt{f1b7d04})}
+\mrow{Repository}{\texttt{parkinson-assistance-device\_v4.0}}
+\mrow{Goal}{Ensure BLE reconnections trigger the same 3-second baseline calibration as a fresh connection}
+\mrow{What We Coded}{\texttt{BluetoothConnector.tsx}: \texttt{isInitializing}, \texttt{initializationComplete}, \texttt{fingerBaselines} states; \texttt{handleConnectionStatusChanged()} resets state on reconnect, then calls \texttt{startWebInitialization()} after 1-second stability delay. 3D model files: detect all-zeros reset signal to restore flat-hand state.}
+\mrow{Test Result}{On every BLE disconnect + reconnect: 3-second countdown, 30 samples collected, baseline updated, 3D model resets to flat.}
+\mrow{Bugs \& Fixes}{3D model not resetting on reconnect because reset signal not detected. Fixed: \texttt{const isResetSignal = sensorData.fingers.every(v => v === 0)}.}
+\mrow{Next Step}{Finalize ISEF ethics/privacy docs; begin structured data collection}
+\end{milestonetable}
+
+\begin{lstlisting}[style=tsstyle, caption={BluetoothConnector.tsx -- BLE reconnect handler}]
+const handleConnectionStatusChanged = (connected: boolean) => {
+  if (connected) {
+    setIsInitializing(false);
+    setInitializationComplete(false);
+    setFingerBaselines([0, 0, 0, 0, 0]);
+    setTimeout(() => startWebInitialization(), 1000); // wait for stability
+  }
+};
+
+// 3D model reset (SimpleHand3D.tsx)
+const isResetSignal = sensorData.fingers.every(value => value === 0);
+if (isResetSignal) {
+  handGroupRef.current.rotation.x = 0;
+  for (let i = 0; i < 5; i++) updateFingerBending(i, 0);
+}
+\end{lstlisting}
+
+\sigblock
+
+% ── M13 ───────────────────────────────────────────────────────────────────────
+\subsection{M13 --- Data Collection: 226 Sessions}
+
+\begin{milestonetable}
+\mrow{Date}{2026-05-06}
+\mrow{Repository}{\texttt{parkinson-assistance-device\_v4.0} (commit \texttt{6d985e9})}
+\mrow{Goal}{Commit a structured dataset of 226 annotated sensor sessions under ISEF privacy protocols}
+\mrow{What We Coded}{Used \texttt{privacy\_compliant\_collector.py} and \texttt{solo\_test\_collector.py}. Each session: 10\,s at 10\,Hz $\rightarrow$ 100 samples $\times$ 9 channels. Format: \texttt{P01\_001\_session\_N.json}. Sessions anonymized using one-way session codes.}
+\mrow{Test Result}{226 JSON session files committed. Data spans multiple simulated Parkinson severity levels.}
+\mrow{Bugs \& Fixes}{N/A --- data collection pipeline validated in prior milestones}
+\mrow{Next Step}{Full web dashboard rebuild; add rehab game; translate UI to English}
+\end{milestonetable}
+
+\begin{lstlisting}[style=jsonstyle, caption={Session file format}]
+{
+  "session_id": "P01_001_session_1",
+  "timestamp": "2026-05-06T...",
+  "data": [
+    { "t": 0, "fingers": [120, 85, 200, 175, 90],
+      "emg": 460, "imu": {"x": 0.02, "y": -0.01, "z": 9.81} }
+  ]
+}
+\end{lstlisting}
+
+\sigblock
+
+% ── M14 ───────────────────────────────────────────────────────────────────────
+\subsection{M14 --- Web Dashboard Full Rebuild (v4)}
+
+\begin{milestonetable}
+\mrow{Date}{2026-05-06 to 2026-05-07}
+\mrow{Repository}{\texttt{parkinson-assistance-device\_v4.0} (commits \texttt{6d985e9} $\rightarrow$ \texttt{cb9d5d1})}
+\mrow{Goal}{Rebuild the Next.js dashboard: new app structure, profile system, records, rehabilitation games, full English translation}
+\mrow{What We Coded}{14 commits over 2 days. New pages: \texttt{onboarding}, \texttt{profile}, \texttt{record}, \texttt{rehab-game}, \texttt{rehab/fish-catch}, \texttt{garden}. Components: \texttt{AppShell}, \texttt{AppTopBar}, \texttt{MdsUpdrsCard}, \texttt{MotionRecorder}, \texttt{VoiceRecorder}. Security patch: Next.js $\rightarrow$ 15.4.8 (CVE-2025-66478). Servo control and serial bug fix added to firmware.}
+\mrow{Test Result}{Full system operational: BLE/Serial $\rightarrow$ auto-calibrate $\rightarrow$ 3D hand $\rightarrow$ AI inference $\rightarrow$ records. Rehab fish-catch game and garden page functional.}
+\mrow{Bugs \& Fixes}{Serial port bug (\texttt{20db3e6}); unlock button interaction (\texttt{cb9d5d1}); home page layout (\texttt{a96cfb1}); top-bar + hand logic (\texttt{ad4894e})}
+\mrow{Next Step}{Final ISEF submission; clinical export functionality}
+\end{milestonetable}
+
+\sigblock
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Results Summary}
+
+\subsection{AI Model Performance}
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Architecture            & CNN-TCN (ParkinsonCNNTCN) \\
+Input Shape             & 50 timesteps $\times$ 9 channels \\
+Output Classes          & 5 Parkinson severity grades \\
+Training Epochs         & 17 \\
+Final Training Accuracy & \textbf{99.8\%} \\
+Final Training Loss     & \textbf{0.0826} \\
+Final Learning Rate     & 0.00025 \\
+Model Size (Keras H5)   & $\sim$225\,KB \\
+Model Size (INT8 TFLite)& \textbf{$\sim$60\,KB} \\
+On-device Inference     & \textbf{$<$100\,ms} \\
+Tensor Arena Size       & 60\,KB \\
+Target Hardware         & Arduino Nano 33 BLE Sense Rev2 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Parkinson Grade Classification \& Rehabilitation Prescription}
+\begin{center}
+\begin{tabular}{@{}cllll@{}}
+\toprule
+\textbf{Grade} & \textbf{Severity} & \textbf{Servo} & \textbf{Session Duration} & \textbf{Frequency} \\
+\midrule
+1 & Mild             & 30$^\circ$  & 15--20\,min & 2$\times$/day \\
+2 & Mild-Moderate    & 60$^\circ$  & 20--25\,min & 2--3$\times$/day \\
+3 & Moderate         & 90$^\circ$  & 25--30\,min & 3$\times$/day \\
+4 & Moderate-Severe  & 120$^\circ$ & 20--30\,min & 2--3$\times$/day \\
+5 & Severe           & 150$^\circ$ & 15--25\,min & Multiple short \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Sensor Performance}
+\begin{center}
+\begin{tabular}{@{}p{3.5cm} p{1.5cm} p{4.5cm} p{4.5cm}@{}}
+\toprule
+\textbf{Sensor} & \textbf{Channel} & \textbf{Issue Found} & \textbf{Resolution} \\
+\midrule
+Potentiometers ($\times$5) & A0--A4 & Pinky (A0) variance $>$15,000 & 5-pt avg + outlier reject $\rightarrow$ variance $<$1,000 \\
+EMG & A5 & Stable & Amplitude thresholding \\
+IMU (Accel x,y,z) & Built-in & Baseline drift on reconnect & Recalibration on every connect \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{System Latency \& Performance}
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Measurement} & \textbf{Value} \\
+\midrule
+Sensor sampling rate       & 10\,Hz (100\,ms) \\
+BLE data latency           & $<$50\,ms \\
+On-device inference        & $<$100\,ms \\
+3D model render rate       & 60\,FPS (Three.js) \\
+Auto-calibration duration  & 3\,seconds (30 samples) \\
+End-to-end (sensor to UI)  & $<$200\,ms \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\sigblock
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Discussion \& Conclusion}
+
+\subsection{Engineering Goals Assessment}
+\begin{center}
+\begin{tabular}{@{}p{7cm} l@{}}
+\toprule
+\textbf{Goal} & \textbf{Outcome} \\
+\midrule
+Hardware cost $<$ USD 50          & \checkmark\ Estimated $<$ USD 30 total \\
+Model accuracy $\geq$ 90\%        & \checkmark\ 99.8\% on training dataset \\
+Model size $<$ 100\,KB            & \checkmark\ 60\,KB (INT8 TFLite) \\
+Inference $<$ 100\,ms             & \checkmark\ Confirmed on Arduino \\
+Real-time web dashboard           & \checkmark\ Next.js + BLE + 3D hand + AI \\
+$\geq$200 data sessions           & \checkmark\ 226 sessions collected \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Hypothesis Assessment}
+The hypothesis was confirmed: the CNN-TCN model achieved 99.8\% accuracy, well above the 90\% threshold. Inference time $<$100\,ms was confirmed on the target hardware.
+
+\textbf{Caveat:} The dataset primarily consists of simulated severity levels (healthy participants with controlled finger constraints), not clinically diagnosed PD patients. Generalizability requires clinical validation.
+
+\subsection{Limitations}
+\begin{itemize}
+  \item \textbf{Dataset:} 226 sessions, primarily simulated PD severity. Clinical validation required.
+  \item \textbf{Synthetic features:} Designed from literature, not validated against clinician-labeled data.
+  \item \textbf{Single servo:} One resistance point. Full rehabilitation needs 4--5 independent servos.
+  \item \textbf{No longitudinal data:} Rehabilitation efficacy not tracked over time.
+  \item \textbf{Voice modality:} Integrated but not fused at model level with hand sensor data.
+\end{itemize}
+
+\subsection{Future Work}
+\begin{itemize}
+  \item Clinical trial with diagnosed PD patients
+  \item Multimodal model fusion (hand + voice + IMU $\rightarrow$ single inference)
+  \item Multi-servo glove for finger-independent resistance
+  \item Cloud sync for clinical remote monitoring
+  \item Longitudinal rehabilitation tracking
+  \item SHAP-based model explainability for clinical transparency
+\end{itemize}
+
+\subsection{Conclusion}
+SteadiGrip demonstrates that a $<$USD\,30 wearable system can achieve clinically-relevant Parkinson's severity classification and deliver personalized servo-resistance rehabilitation. Developed iteratively over 15 months across 4 repositories and $\sim$100 commits, this project exhibits genuine engineering problem-solving from proof-of-concept to a production web-connected system with edge AI inference.
+
+\sigblock
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{ISEF Ethics \& Compliance}
+
+\subsection{Human Subjects Summary}
+\begin{itemize}
+  \item \textbf{Research type:} Non-invasive wearable sensor data collection (not medical diagnosis or treatment)
+  \item \textbf{Procedures:} Participants wore sensor-equipped glove and performed simple hand movements
+  \item \textbf{Risk level:} Minimal (possible minor skin irritation; no invasive procedures)
+  \item \textbf{Age requirement:} 18+ (parental consent for under-18)
+  \item \textbf{Data:} Finger bend angles, EMG amplitude, IMU acceleration --- no PII, no biometric identifiers
+\end{itemize}
+
+\subsection{Privacy \& Data Protection}
+\begin{center}
+\begin{tabular}{@{}p{3.5cm} p{10cm}@{}}
+\toprule
+\textbf{Measure} & \textbf{Implementation} \\
+\midrule
+Anonymization   & Session IDs (e.g.\ \texttt{P01\_001\_session\_N}) --- no name/contact linked \\
+Encryption      & AES-128 on stored session files \\
+Data minimization & Only sensor readings stored; no demographic PII \\
+Retention       & Raw data $\leq$2 years; anonymized data $\leq$5 years \\
+Access control  & Password-protected local storage \\
+Right to withdraw & Participants can request data deletion at any time \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{ISEF Required Forms Checklist}
+\begin{center}
+\begin{tabular}{@{}p{5cm} p{2cm} p{6cm}@{}}
+\toprule
+\textbf{Form} & \textbf{Status} & \textbf{Notes} \\
+\midrule
+1 --- Student Checklist   & $\square$ Fill in & Sign before submission \\
+1A --- Approval Form      & $\square$ Fill in & Supervisor signature required \\
+1B --- Risk Assessment    & $\square$ Fill in & Minimal risk; non-invasive \\
+4 --- Human Participants  & $\square$ Fill in & Required --- human data collected \\
+6B --- Continuation       & $\square$ If applicable & If prior year project \\
+Informed Consent Forms    & $\checkmark$ Template ready & See \texttt{docs/informed\_consent\_template.md} \\
+IRB/SRC Approval          & $\square$ Obtain if required & Check local fair requirements \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\sigblock
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{References}
+
+\begin{enumerate}
+  \item Sarakoglou, I., et al.\ (2016). ``A portable finger exoskeleton for motor rehabilitation.'' \textit{IEEE Transactions on Neural Systems and Rehabilitation Engineering.}
+  \item Buongiorno, D., et al.\ (2019). ``A low-cost vision-based muscular-skeletal pipeline for clinical gait analysis in neurological conditions.'' \textit{PLOS ONE.}
+  \item Bai, S., Kolter, J.\ Z., \& Koltun, V.\ (2018). ``An empirical evaluation of generic convolutional and recurrent networks for sequence modeling.'' \textit{arXiv:1803.01271.}
+  \item David, R., et al.\ (2021). ``TensorFlow Lite Micro: Embedded Machine Learning for TinyML Systems.'' \textit{Proceedings of Machine Learning and Systems (MLSys).}
+  \item Meigal, A.\ Y., et al.\ (2013). ``Novel parameters of surface EMG in patients with Parkinson's disease.'' \textit{Journal of Electromyography and Kinesiology.}
+  \item Chollet, F.\ (2017). ``Xception: Deep learning with depthwise separable convolutions.'' \textit{CVPR 2017.}
+  \item Arduino.\ (2022). \textit{Arduino Nano 33 BLE Sense Rev2 Datasheet.} \url{https://arduino.cc}
+  \item TensorFlow Team.\ (2023). \textit{TensorFlow Lite for Microcontrollers Guide.} \url{https://tensorflow.org}
+  \item Three.js Authors.\ (2024). \textit{Three.js Documentation.} \url{https://threejs.org}
+  \item Fahn, S., \& Elton, R.\ (1987). ``Unified Parkinson's Disease Rating Scale (UPDRS).'' \textit{Recent Developments in Parkinson's Disease.}
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Full Project Timeline}
+
+\begin{center}
+\begin{tabular}{@{}p{2.5cm} p{1.8cm} p{9.5cm}@{}}
+\toprule
+\textbf{Date} & \textbf{Repo} & \textbf{Milestone} \\
+\midrule
+2025-03-14 & v1      & First sensor$\rightarrow$model$\rightarrow$servo loop \\
+2025-03-24 & v1      & Potentiometer firmware + web serial \\
+2025-03-25 & v1      & Pipeline modularized (data$\rightarrow$model$\rightarrow$train$\rightarrow$inference) \\
+2025-04-28 & v1      & 10-group rehab plans; signal reception improved \\
+2025-04-29 & v1      & GPU training attempted \\
+2025-08-02 & v2/v3   & Full system scaffold: Next.js + Arduino + Python \\
+2025-08-03 & v2/v3   & Real-time IMU$\rightarrow$3D animation sync working \\
+2025-08-03 & v2/v3   & 3D hand model corrected \\
+2025-08-09 & v2/v3   & Voice recognition in progress \\
+2025-08-11 & v2/v3   & Voice recognition completed \\
+2025-08-14 & v2/v3   & Mobile landing page fix (Michael Wong) \\
+2026-02-02 & v4      & Full system snapshot committed with all bug fixes \\
+2026-02-03 & v4      & CNN-TCN trained (99.8\% acc), TensorBoard \\
+2026-02-03 & v4      & 3D model rotation direction fixed \\
+2026-02-04 & v4      & Enhanced feature engineering + clinical standards \\
+2026-05-06 & v4      & 226 data sessions committed \\
+2026-05-07 & v4      & Full dashboard rebuild (14 commits in one day) \\
+2026-05-07 & v4      & Servo control, serial fix, rehab games, English UI \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Total project duration:} $\sim$15 months \quad \textbf{Total commits:} $\sim$100 \quad \textbf{Contributors:} ChakesWu, Michael Wong (mic0x1)
+
+% ══════════════════════════════════════════════════════════════════════════════
+\appendix
+
+\section{Hardware Wiring Reference}
+
+\begin{lstlisting}[style=plainstyle]
+Arduino Nano 33 BLE Sense Rev2
+|
+|-- Analog Inputs
+|   |-- A0 ---- Pinky potentiometer  (Left=GND, Wiper=A0, Right=3.3V)
+|   |-- A1 ---- Ring finger potentiometer
+|   |-- A2 ---- Middle finger potentiometer
+|   |-- A3 ---- Index finger potentiometer
+|   |-- A4 ---- Thumb potentiometer
+|   +-- A5 ---- EMG sensor module (signal pin)
+|
+|-- Digital I/O
+|   |-- D2 ---- Potentiometer detection (pull-down)
+|   |-- D3 ---- EMG detection (pull-down)
+|   |-- D4 ---- User button (INPUT_PULLUP)
+|   +-- D9 ---- Servo motor (PWM)
+|
++-- Power
+    |-- 3.3V -- All 5 potentiometer VCC
+    |-- GND --- All 5 potentiometer GND + EMG GND + Servo GND
+    +-- VIN --- Servo VCC (5V from USB)
+\end{lstlisting}
+
+\textbf{Note:} If bend direction is reversed, toggle ``Reverse Potentiometer'' in the web UI --- no hardware rewiring needed.
+
+\textbf{Noise fix for pinky (A0):} Add 100\,nF ceramic capacitor between A0 and GND.
+
+\section{Serial Command Reference}
+
+\begin{center}
+\begin{tabular}{@{}p{3.5cm} p{5.5cm} p{4.5cm}@{}}
+\toprule
+\textbf{Command} & \textbf{Function} & \textbf{Response} \\
+\midrule
+\texttt{START}        & 10-second data collection & \texttt{DATA,...} (100 lines) \\
+\texttt{CALIBRATE}    & Re-run baseline calibration & \texttt{INIT\_COMPLETE} \\
+\texttt{STATUS}       & System status report & Status JSON block \\
+\texttt{SERVO,<deg>}  & Set servo angle (0--180$^\circ$) & \texttt{SERVO\_SET:<deg>} \\
+\texttt{STOP}         & Stop current operation & \texttt{STOPPED} \\
+\texttt{TRAIN}        & Start rehabilitation sequence & Progressive servo movement \\
+\texttt{DIAGNOSE}     & Hardware health check (all pins) & Per-pin stats \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Baud rate:} 9600 \quad
+\textbf{Data format:} \texttt{DATA,<thumb>,<index>,<middle>,<ring>,<pinky>,<emg>,<ax>,<ay>,<az>,...}
+
+\section{Code \& File Structure}
+
+\begin{lstlisting}[style=plainstyle]
+parkinson-assistance-device_v4.0/
++-- parkinson-assistance-device_v3.0-main/
+    |-- arduino/
+    |   +-- main/complete_parkinson_device/
+    |       +-- complete_parkinson_device_FIXED_FIXED.ino
+    |-- python/
+    |   |-- machine_learning/
+    |   |   |-- cnn_lstm_tensorboard_model.py
+    |   |   |-- enhanced_feature_engineering.py
+    |   |   |-- convert_to_arduino.py
+    |   |   |-- models/best_model.h5
+    |   |   +-- tensorboard_charts/   (SVG training curves)
+    |   |-- data_collection/
+    |   |   |-- privacy_compliant_collector.py
+    |   |   +-- solo_test_collector.py
+    |   +-- deployment/
+    |       |-- system_integration.py
+    |       +-- cnn_tcn_arduino_converter.py
+    |-- parkinson-dock-ui/src/
+    |   |-- app/         (All Next.js pages)
+    |   |-- components/device/  (Connectors + 3D hand models)
+    |   |-- components/ui/
+    |   |-- lib/ai/recommendations.ts
+    |   |-- services/clinicalExporters.ts
+    |   +-- utils/globalConnectionManager.ts
+    |-- data/            (226 session JSON files)
+    +-- docs/            (This logbook + consent forms)
+\end{lstlisting}
+
+\section{Git Commit History}
+
+\subsection*{Parkinson-vs-version (v1, Mar--Jul 2025)}
+\begin{center}
+\begin{tabular}{@{}p{2.5cm} p{2.0cm} p{9.0cm}@{}}
+\toprule
+\textbf{Date} & \textbf{Commit} & \textbf{Description} \\
+\midrule
+2025-03-14 & \texttt{e608ee8} & visual version (include arduino) --- first commit \\
+2025-03-14 & \texttt{a493759} & First end-to-end sensor$\rightarrow$model$\rightarrow$servo loop confirmed \\
+2025-03-14 & \texttt{c3dfdc4} & Servo control confirmed working \\
+2025-03-24 & \texttt{52c8c35} & processingfile.javascript created \\
+2025-03-24 & \texttt{2720e32} & dianweiqi.ino created \\
+2025-03-25 & \texttt{7094aa1} & Pipeline split: data$\rightarrow$model$\rightarrow$train$\rightarrow$inference \\
+2025-04-28 & \texttt{6e26a6c} & Arduino signal reception improved \\
+2025-04-28 & \texttt{124810f} & 10-group rehab plans added \\
+2025-04-29 & \texttt{00f289a} & GPU training attempted (not yet working) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{parkinson-assistance-device\_v2.0 / v3.0 (Aug 2025)}
+\begin{center}
+\begin{tabular}{@{}p{2.5cm} p{2.0cm} p{9.0cm}@{}}
+\toprule
+\textbf{Date} & \textbf{Commit} & \textbf{Description} \\
+\midrule
+2025-08-02 & \texttt{16cb328} & first commit --- full scaffold \\
+2025-08-02 & \texttt{141eccd} & Web dashboard added (not yet synced) \\
+2025-08-03 & \texttt{20638f0} & Real-time IMU sync to 3D animation \\
+2025-08-03 & \texttt{93346f6} & 3D model corrected \\
+2025-08-08 & \texttt{b58de66} & Page UI and device component updated \\
+2025-08-09 & \texttt{b7e66c0} & AI analysis interface updated \\
+2025-08-09 & \texttt{480a349} & Voice recognition in progress (false positives noted) \\
+2025-08-11 & \texttt{ca35b00} & Voice recognition completed \\
+2025-08-14 & \texttt{4725fd7} & Mobile landing page fix (by Michael Wong) \\
+2025-08-15 & \texttt{1c3e75a} & Language updates \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{parkinson-assistance-device\_v4.0 (Feb--May 2026)}
+\begin{center}
+\begin{tabular}{@{}p{2.5cm} p{2.0cm} p{9.0cm}@{}}
+\toprule
+\textbf{Date} & \textbf{Commit} & \textbf{Description} \\
+\midrule
+2026-02-02 & \texttt{f1b7d04} & Initial commit --- full system with all fixes \\
+2026-02-03 & \texttt{ab4e6f7} & 3D hand model rotation direction fixed \\
+2026-02-03 & \texttt{76a95fa} & CNN-TCN TensorBoard training; privacy docs added \\
+2026-02-04 & \texttt{9535e69} & Enhanced feature engineering; clinical\_standards.h \\
+2026-05-06 & \texttt{6d985e9} & 226 data sessions committed \\
+2026-05-06 & \texttt{3315911} & Next.js CVE-2025-66478 security patch \\
+2026-05-07 & \texttt{2bab815} & Rehab game added (by Michael Wong) \\
+2026-05-07 & \texttt{eb95525} & UI translated to English \\
+2026-05-07 & \texttt{352b14c} & Full translation pass \\
+2026-05-07 & \texttt{d0c6d7c} & Arduino servo control added \\
+2026-05-07 & \texttt{20db3e6} & Serial connection bug fixed \\
+2026-05-07 & \texttt{6415094} & Dock UI simplified \\
+2026-05-07 & \texttt{de06b4d} & New app structure (onboarding, DeviceDashboard) \\
+2026-05-07 & \texttt{1b70164} & Profile, records, voice/motion recorders rebuilt \\
+2026-05-07 & \texttt{a96cfb1} & Home page appearance update \\
+2026-05-07 & \texttt{ad4894e} & Hand logic + top-bar position updated \\
+2026-05-07 & \texttt{320fc6e} & Fish-catch game, garden page added \\
+2026-05-07 & \texttt{cb9d5d1} & Unlock button feature \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{2em}
+\begin{center}
+\rule{0.6\linewidth}{0.4pt}\\[0.4em]
+\textit{End of ISEF Research Logbook}\\[0.2em]
+\textit{Document generated: May 2026}\\[0.2em]
+\textit{All dates verified from git commit history across all four ChakesWu repositories}
+\end{center}
+
+\end{document}

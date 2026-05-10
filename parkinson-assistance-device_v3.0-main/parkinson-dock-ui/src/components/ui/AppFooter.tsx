@@ -13,7 +13,7 @@ import { Github, Heart, Info } from 'lucide-react';
 export default function AppFooter() {
   const year = new Date().getFullYear();
   return (
-    <footer className="mt-auto border-t border-gray-200 dark:border-neutral-800 bg-white/70 dark:bg-neutral-950/70 backdrop-blur">
+    <footer className="mt-auto bg-[#004E80]/10 dark:bg-[#0a1622]">
       <div className="mx-auto max-w-6xl px-6 py-8">
         <div className="grid gap-6 md:grid-cols-2">
           {/* Brand */}

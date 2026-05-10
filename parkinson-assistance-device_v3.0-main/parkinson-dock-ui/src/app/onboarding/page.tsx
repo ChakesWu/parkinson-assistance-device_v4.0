@@ -386,7 +386,7 @@ function Step1PersonalInfo({
     <form onSubmit={onNext} className="space-y-8">
       {/* Header */}
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#004E80] mb-4">
           <User size={32} className="text-white" />
         </div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -469,7 +469,7 @@ function Step1PersonalInfo({
       <button
         type="submit"
         disabled={!valid}
-        className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl hover:opacity-90 hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 group"
+        className="w-full py-3.5 bg-[#004E80] text-white font-semibold rounded-xl hover:bg-[#003a61] hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 group"
       >
         Continue to Motion Data
         <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -588,7 +588,7 @@ function Step2Motion({
       <button
         onClick={onStart}
         disabled={!isConnected || isCollecting}
-        className="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        className="w-full py-3 bg-[#004E80] text-white font-semibold rounded-xl hover:bg-[#003a61] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
       >
         {isCollecting ? `Collecting… ${collectCountdown}s remaining` : 'Start 10-Second Collection'}
       </button>
@@ -604,7 +604,7 @@ function Step2Motion({
       <button
         onClick={onNext}
         disabled={!motionResult}
-        className="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        className="w-full py-3 bg-[#004E80] text-white font-semibold rounded-xl hover:bg-[#003a61] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
       >
         Next — Voice Collection
       </button>
@@ -699,7 +699,7 @@ function Step3Voice({
       <button
         onClick={onStart}
         disabled={!isConnected || isVoiceAnalyzing || voiceDone}
-        className="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        className="w-full py-3 bg-[#004E80] text-white font-semibold rounded-xl hover:bg-[#003a61] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
       >
         {isVoiceAnalyzing ? 'Analysing voice…' : voiceDone ? 'Analysis complete' : 'Start 5-Second Voice Analysis'}
       </button>
@@ -714,7 +714,7 @@ function Step3Voice({
         <button
           onClick={onComplete}
           disabled={!voiceDone}
-          className="flex-1 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          className="flex-1 py-3 bg-[#004E80] text-white font-semibold rounded-xl hover:bg-[#003a61] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
         >
           Complete Setup →
         </button>

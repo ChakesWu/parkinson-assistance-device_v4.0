@@ -26,81 +26,81 @@ export function getRecommendations(severityPercent: number): RecommendationGroup
 
   const core: RecommendationGroup[] = [
     {
-      category: '有氧運動（每週3-5天）',
+      category: 'Aerobic Exercise (3-5 days/week)',
       items: [
-        '快走 30–45 分鐘（RPE 11–13，能說話但略喘）',
-        '室內腳踏車 20–30 分鐘（間歇：2 分鐘輕鬆 / 1 分鐘稍吃力，重複 8–10 回）',
-        '游泳或水中有氧 30 分鐘，重點放鬆僵硬並提升耐力'
+        'Brisk walking 30–45 minutes (RPE 11–13, able to talk but slightly breathless)',
+        'Indoor cycling 20–30 minutes (intervals: 2 min easy / 1 min moderate effort, repeat 8–10 times)',
+        'Swimming or water aerobics 30 minutes, focus on relaxing stiffness and improving endurance'
       ]
     },
     {
-      category: '阻力訓練（每週2–3天）',
+      category: 'Resistance Training (2–3 days/week)',
       items: [
-        '大肌群訓練（深蹲、臀橋、划船、推胸）：每動作 2–3 組 × 8–12 下',
-        '彈力帶肩外展/外旋強化，改善姿勢與軀幹穩定',
-        '踝部負重抬腿與階梯踏步，強化下肢反應與起身能力'
+        'Large muscle group training (squats, glute bridges, rows, chest press): 2–3 sets × 8–12 reps per exercise',
+        'Resistance band shoulder abduction/external rotation strengthening to improve posture and trunk stability',
+        'Ankle weighted leg raises and step-ups to strengthen lower limb response and standing ability'
       ]
     },
     {
-      category: '柔軟度與關節活動（每日）',
+      category: 'Flexibility & Joint Mobility (Daily)',
       items: [
-        '頸、肩、髖、踝關節溫和伸展各 20–30 秒 × 2–3 回',
-        '胸椎旋轉與胸肌放鬆，改善駝背與肩部前傾',
-        '阿拉斯加大字（BIG）動作：誇張伸展上肢與步幅'
+        'Gentle stretching of neck, shoulder, hip, ankle joints for 20–30 seconds × 2–3 repetitions each',
+        'Thoracic spine rotation and chest muscle relaxation to improve hunched posture and forward shoulder position',
+        'LSVT BIG movements: exaggerated upper limb stretches and stride length'
       ]
     },
     {
-      category: '平衡與步態（每週3天）',
+      category: 'Balance & Gait (3 days/week)',
       items: [
-        '地標步伐訓練（跨越標線、方塊踏步），加入節拍器或節奏聲（100–120 BPM）',
-        '轉身與起立練習：坐-站 10 次 × 2 組，強調對稱與穩定',
-        '側向步伐與後退走，提高方向變換的穩定度'
+        'Landmark gait training (stepping over lines, box stepping), add metronome or rhythmic cues (100–120 BPM)',
+        'Turning and sit-to-stand practice: 10 repetitions × 2 sets, emphasize symmetry and stability',
+        'Lateral stepping and backward walking to improve stability during directional changes'
       ]
     },
     {
-      category: '精細動作與上肢協調（每週3天）',
+      category: 'Fine Motor Skills & Upper Limb Coordination (3 days/week)',
       items: [
-        '手指敲擊、旋鈕操作、夾珠訓練，單手與雙手交替 10–15 分鐘',
-        '手腕前臂伸展與橡皮筋開合，緩解僵硬並提升靈活度',
-        '節拍器輔助的手指–拇指對指訓練（變速 80→100 BPM）'
+        'Finger tapping, knob turning, bead pinching exercises, alternating single and both hands for 10–15 minutes',
+        'Wrist and forearm stretches with rubber band opening/closing to relieve stiffness and improve dexterity',
+        'Metronome-assisted finger-to-thumb opposition training (variable speed 80→100 BPM)'
       ]
     }
   ];
 
   const advanced: RecommendationGroup[] = [
     {
-      category: '節律與音樂治療（Rhythmic Auditory Stimulation）',
+      category: 'Rhythmic & Music Therapy (Rhythmic Auditory Stimulation)',
       items: [
-        '配合音樂節拍進行步行訓練，逐步提升 5–10% 步頻',
-        '使用節拍器維持穩定步幅與步頻，改善凍結步態'
+        'Walking training synchronized with music beats, gradually increase cadence by 5–10%',
+        'Use metronome to maintain stable stride length and cadence, improve freezing of gait'
       ]
     },
     {
-      category: '太極 / 氣功（每週2–3天）',
+      category: 'Tai Chi / Qigong (2–3 days/week)',
       items: [
-        '24 式太極（前 8–12 式），重點重心轉移與上肢開展',
-        '八段錦或易筋經，配合呼吸節律，放鬆僵硬'
+        '24-form Tai Chi (first 8–12 forms), focus on weight shifting and upper limb extension',
+        'Baduanjin or Yijinjing, coordinate with breathing rhythm to relax stiffness'
       ]
     },
     {
-      category: '拳擊/舞蹈（功能性整合）',
+      category: 'Boxing/Dance (Functional Integration)',
       items: [
-        '非接觸式拳擊課程（Rock Steady Boxing 類型）每次 45–60 分鐘',
-        '探戈或華爾滋舞步訓練，強化方向切換、步幅與姿勢控制'
+        'Non-contact boxing classes (Rock Steady Boxing type) 45–60 minutes per session',
+        'Tango or waltz dance training to strengthen directional changes, stride length, and posture control'
       ]
     },
     {
-      category: '語音與呼吸訓練（LSVT/呼吸肌）',
+      category: 'Voice & Breathing Training (LSVT/Respiratory Muscles)',
       items: [
-        '大聲朗讀與延音（LSVT 概念），每日 10–15 分鐘',
-        '呼吸肌訓練器 30 次/日（依裝置阻力分級）'
+        'Loud reading and sustained phonation (LSVT LOUD concept), 10–15 minutes daily',
+        'Respiratory muscle trainer 30 repetitions/day (based on device resistance level)'
       ]
     },
     {
-      category: '雙重作業（Dual-task）',
+      category: 'Dual-Task Training',
       items: [
-        '邊走邊數 7 的倍數、命名水果/城市，提升注意轉移',
-        '倒退行走配合節拍器（確保安全場地）'
+        'Walk while counting multiples of 7 or naming fruits/cities to improve attention shifting',
+        'Backward walking with metronome (ensure safe environment)'
       ]
     }
   ];

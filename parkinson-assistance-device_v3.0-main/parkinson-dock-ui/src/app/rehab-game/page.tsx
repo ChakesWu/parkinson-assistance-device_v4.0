@@ -254,7 +254,7 @@ export default function RehabGamePage() {
 
         <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
           <section className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900 shadow-2xl">
-            <div className="border-b border-white/10 bg-gradient-to-r from-cyan-500/15 via-blue-500/10 to-purple-500/15 p-4">
+            <div className="border-b border-white/10 bg-[#004E80]/20 p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-semibold leading-7 tracking-normal">Sine Wave Follower</h2>

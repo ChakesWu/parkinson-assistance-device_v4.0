@@ -87,7 +87,7 @@ export default function FloatingDevicePanel() {
             whileTap={{ scale: 0.94 }}
             transition={{ type: 'spring', stiffness: 360, damping: 22 }}
             aria-label="Open device dashboard"
-            className="fixed bottom-24 right-6 z-[60] h-14 w-14 rounded-full shadow-xl flex items-center justify-center text-white bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 print:hidden"
+            className="fixed bottom-24 right-6 z-[60] h-14 w-14 rounded-full shadow-xl flex items-center justify-center text-white bg-[#004E80] hover:bg-[#003a61] hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-[#004E80] focus:ring-offset-2 print:hidden"
           >
             <Activity className="h-6 w-6" />
             <span

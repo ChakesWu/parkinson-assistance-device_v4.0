@@ -27,7 +27,7 @@ const GAMES: MiniGameDef[] = [
     description: 'Move your fingers in a smooth rhythm to trace the path inside the glowing band.',
     motorAxis: 'Rhythm + range of motion',
     icon: <Gamepad2 size={24} />,
-    accent: 'from-cyan-500 to-blue-600',
+    accent: 'from-[#004E80] to-[#0070b8]',
     unlock: { type: 'sessions', value: 0 },
   },
   {
@@ -37,7 +37,7 @@ const GAMES: MiniGameDef[] = [
     description: 'Hold your bend exactly at the target so the cup fills smoothly. No spills allowed.',
     motorAxis: 'Sustained controlled flexion',
     icon: <span className="text-2xl">🍵</span>,
-    accent: 'from-emerald-500 to-teal-600',
+    accent: 'from-[#004E80] to-[#005d99]',
     unlock: { type: 'streak', value: 3, orSessions: 5 },
   },
   {
@@ -47,7 +47,7 @@ const GAMES: MiniGameDef[] = [
     description: 'When the fish appears, snap your grip closed quickly to catch it.',
     motorAxis: 'Reaction time + grip strength',
     icon: <Fish size={24} />,
-    accent: 'from-purple-500 to-pink-600',
+    accent: 'from-[#003a61] to-[#004E80]',
     unlock: { type: 'streak', value: 7, orSessions: 15 },
   },
 ];
@@ -123,8 +123,8 @@ export default function RehabHubPage() {
             onClick={toggleDemoUnlock}
             className={`flex-shrink-0 rounded-xl px-3 py-2 text-sm font-semibold transition ${
               demoUnlock
-                ? 'bg-amber-500 text-white hover:bg-amber-400'
-                : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90'
+                ? 'bg-[#004E80] text-white hover:bg-[#003a61]'
+                : 'bg-[#004E80] text-white hover:bg-[#003a61]'
             }`}
           >
             {demoUnlock ? 'Lock again' : 'Unlock all'}

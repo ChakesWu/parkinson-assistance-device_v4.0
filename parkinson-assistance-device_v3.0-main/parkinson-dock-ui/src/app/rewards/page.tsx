@@ -56,7 +56,7 @@ function TabButton({ active, onClick, icon, label }: { active: boolean; onClick:
       onClick={onClick}
       className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2 text-sm font-medium transition ${
         active
-          ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow'
+          ? 'bg-[#004E80] text-white shadow'
           : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-800'
       }`}
     >
@@ -116,7 +116,7 @@ function AchievementsTab() {
         </div>
         <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-neutral-800">
           <div
-            className="h-full bg-gradient-to-r from-amber-400 to-amber-500"
+            className="h-full bg-[#004E80]"
             style={{ width: `${(unlocked / Math.max(1, defs.length)) * 100}%` }}
           />
         </div>
@@ -153,7 +153,7 @@ function AchievementRow({ def, progress }: { def: AchievementDefinition; progres
         ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700/40'
         : 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700'
     }`}>
-      <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl text-2xl ${unlocked ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-white' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
+      <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl text-2xl ${unlocked ? 'bg-[#004E80] text-white' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
         {unlocked ? def.icon : <Lock size={18} />}
       </div>
       <div className="flex-1 min-w-0">
@@ -163,7 +163,7 @@ function AchievementRow({ def, progress }: { def: AchievementDefinition; progres
         <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{def.description}</div>
         <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-neutral-700">
           <div
-            className={`h-full ${unlocked ? 'bg-amber-500' : 'bg-gradient-to-r from-purple-500 to-indigo-500'}`}
+            className={`h-full ${unlocked ? 'bg-[#004E80]' : 'bg-[#004E80]/40'}`}
             style={{ width: `${Math.round(ratio * 100)}%` }}
           />
         </div>
@@ -343,9 +343,9 @@ function CardsTab() {
 function AlbumSlot({ card, owned }: { card: PlantCardDefinition; owned?: OwnedCard }) {
   const isOwned = !!owned;
   const rarityClass =
-    card.rarity === 'legendary' ? 'from-amber-200 to-pink-200 ring-amber-300 dark:from-amber-700/30 dark:to-pink-700/30 dark:ring-amber-500/50' :
-    card.rarity === 'rare' ? 'from-purple-100 to-indigo-100 ring-purple-200 dark:from-purple-800/30 dark:to-indigo-800/30 dark:ring-purple-500/40' :
-    card.rarity === 'uncommon' ? 'from-emerald-100 to-cyan-100 ring-emerald-200 dark:from-emerald-800/30 dark:to-cyan-800/30 dark:ring-emerald-500/40' :
+    card.rarity === 'legendary' ? 'from-amber-100 to-amber-200 ring-amber-300 dark:from-amber-800/30 dark:to-amber-700/30 dark:ring-amber-500/50' :
+    card.rarity === 'rare' ? 'from-[#004E80]/10 to-[#0070b8]/10 ring-[#004E80]/30 dark:from-[#004E80]/30 dark:to-[#0070b8]/20 dark:ring-[#004E80]/40' :
+    card.rarity === 'uncommon' ? 'from-[#004E80]/5 to-[#0070b8]/5 ring-[#004E80]/20 dark:from-[#004E80]/15 dark:to-[#0070b8]/10 dark:ring-[#004E80]/25' :
     'from-white to-gray-50 ring-gray-200 dark:from-neutral-900 dark:to-neutral-800 dark:ring-neutral-700';
   return (
     <div className={`rounded-2xl bg-gradient-to-br ${rarityClass} p-3 ring-1 text-center ${isOwned ? '' : 'opacity-50'}`}>

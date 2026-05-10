@@ -248,7 +248,7 @@ export default function FishCatchPage() {
 
         <div className="grid gap-6 md:grid-cols-[1fr_240px]">
           {/* Pond */}
-          <section className="relative overflow-hidden rounded-3xl border-2 border-cyan-300 dark:border-cyan-700/40 bg-gradient-to-b from-cyan-200 via-blue-200 to-blue-300 dark:from-cyan-800/40 dark:via-blue-800/40 dark:to-blue-900/40 p-6 shadow-md min-h-[360px]">
+          <section className="relative overflow-hidden rounded-3xl border-2 border-[#004E80]/30 dark:border-[#004E80]/40 bg-gradient-to-b from-[#004E80]/15 via-[#004E80]/20 to-[#003a61]/25 dark:from-[#004E80]/30 dark:via-[#003a61]/40 dark:to-[#002d4a]/50 p-6 shadow-md min-h-[360px]">
             <Ripples />
             <div className="relative h-72 flex items-center justify-center">
               {phase === 'idle' && (

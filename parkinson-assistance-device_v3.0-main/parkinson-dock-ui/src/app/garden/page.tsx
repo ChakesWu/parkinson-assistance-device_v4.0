@@ -59,7 +59,7 @@ export default function GardenPage() {
   const summary = gardenService.getSummary();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-sky-50 to-amber-50 dark:from-emerald-950/40 dark:via-slate-950 dark:to-amber-950/30 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 flex flex-col">
       <AppTopBar showBack />
       <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-8">
         <div className="mb-6">
@@ -177,8 +177,8 @@ function GardenSlot({
     <div
       className={`relative aspect-square rounded-2xl border-2 p-2 flex flex-col items-center justify-center text-center transition ${
         inBloom
-          ? 'border-pink-300 dark:border-pink-700/50 bg-gradient-to-b from-pink-100 to-pink-50 dark:from-pink-900/30 dark:to-pink-950/20 shadow-sm'
-          : 'border-emerald-200 dark:border-emerald-700/40 bg-gradient-to-b from-emerald-50 to-amber-50 dark:from-emerald-900/20 dark:to-amber-900/10'
+          ? 'border-[#004E80]/40 dark:border-[#004E80]/50 bg-[#004E80]/8 dark:bg-[#004E80]/20 shadow-sm'
+          : 'border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-900'
       }`}
     >
       <div className="text-5xl leading-none">{stageEmoji}</div>
@@ -220,9 +220,9 @@ function growthEmoji(stage: PlantedSpeciesView['growthStage']): string {
 
 function CardTile({ card, count }: { card: PlantCardDefinition; count: number }) {
   const rarityClass =
-    card.rarity === 'legendary' ? 'from-amber-200 to-pink-200 ring-amber-300 dark:from-amber-700/30 dark:to-pink-700/30 dark:ring-amber-500/50' :
-    card.rarity === 'rare' ? 'from-purple-100 to-indigo-100 ring-purple-200 dark:from-purple-800/30 dark:to-indigo-800/30 dark:ring-purple-500/40' :
-    card.rarity === 'uncommon' ? 'from-emerald-100 to-cyan-100 ring-emerald-200 dark:from-emerald-800/30 dark:to-cyan-800/30 dark:ring-emerald-500/40' :
+    card.rarity === 'legendary' ? 'from-amber-100 to-amber-200 ring-amber-300 dark:from-amber-800/30 dark:to-amber-700/30 dark:ring-amber-500/50' :
+    card.rarity === 'rare' ? 'from-[#004E80]/10 to-[#0070b8]/10 ring-[#004E80]/30 dark:from-[#004E80]/30 dark:to-[#0070b8]/20 dark:ring-[#004E80]/40' :
+    card.rarity === 'uncommon' ? 'from-[#004E80]/5 to-[#0070b8]/5 ring-[#004E80]/20 dark:from-[#004E80]/15 dark:to-[#0070b8]/10 dark:ring-[#004E80]/25' :
     'from-white to-gray-50 ring-gray-200 dark:from-neutral-900 dark:to-neutral-800 dark:ring-neutral-700';
   return (
     <div className={`rounded-2xl bg-gradient-to-br ${rarityClass} p-3 ring-1 text-center`}>

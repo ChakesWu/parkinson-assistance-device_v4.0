@@ -58,8 +58,8 @@ export default function SessionCompleteModal({ open, summary, onClose, onPlayAga
         </button>
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-cyan-500/30 via-blue-500/20 to-purple-500/30 px-6 pb-4 pt-6 text-center">
-          <div className="mx-auto mb-3 inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 shadow-lg">
+        <div className="bg-[#004E80]/30 px-6 pb-4 pt-6 text-center">
+          <div className="mx-auto mb-3 inline-flex h-16 w-16 items-center justify-center rounded-full bg-[#004E80] shadow-lg">
             <Sparkles size={32} className="text-white" />
           </div>
           <h2 className="text-2xl font-bold">Great work!</h2>
@@ -270,14 +270,14 @@ export default function SessionCompleteModal({ open, summary, onClose, onPlayAga
           {onPlayAgain ? (
             <button
               onClick={onPlayAgain}
-              className="rounded-xl bg-cyan-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400"
+              className="rounded-xl bg-[#004E80] px-4 py-3 font-semibold text-white transition hover:bg-[#003a61]"
             >
               Play again
             </button>
           ) : (
             <button
               onClick={onClose}
-              className="rounded-xl bg-cyan-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400"
+              className="rounded-xl bg-[#004E80] px-4 py-3 font-semibold text-white transition hover:bg-[#003a61]"
             >
               Done
             </button>

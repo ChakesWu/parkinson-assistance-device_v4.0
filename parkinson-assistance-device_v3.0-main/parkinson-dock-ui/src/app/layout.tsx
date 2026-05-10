@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import AppShell from "@/components/ui/AppShell";
 import AppFooter from "@/components/ui/AppFooter";
+import ThemeProvider from "@/components/providers/ThemeProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -25,10 +26,12 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
       <body className={`${inter.variable} antialiased min-h-screen flex flex-col`}>
-        <AppShell>
-          <div className="flex-1 flex flex-col">{children}</div>
-          <AppFooter />
-        </AppShell>
+        <ThemeProvider>
+          <AppShell>
+            <div className="flex-1 flex flex-col">{children}</div>
+            <AppFooter />
+          </AppShell>
+        </ThemeProvider>
       </body>
     </html>
   );

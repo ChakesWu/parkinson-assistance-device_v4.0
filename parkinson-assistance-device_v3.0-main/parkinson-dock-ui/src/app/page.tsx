@@ -48,6 +48,36 @@ function severityToMdsUpdrs(overallSeverity: number): number {
   return Math.round((overallSeverity / 100) * 108);
 }
 
+function loadTestProfile() {
+  const now = Date.now();
+  const day = 86400000;
+
+  const profile = { name: 'Alex Demo', age: '62', sex: 'Male', race: 'Asian', onboardingComplete: true };
+
+  const analysisRecords = [
+    { id: `analysis_${now - 7 * day}_a1`, timestamp: new Date(now - 7 * day).toISOString(), analysisCount: now - 7 * day, parkinsonLevel: 3, parkinsonDescription: 'Sample · Moderate — Moderate', confidence: 78, recommendation: 'Demo sample. Tremor ≈ 5.20 Hz, EMG RMS ≈ 220.0', recommendedResistance: 40, sensorData: { fingerPositions: [55, 70, 75, 70, 60], accelerometer: { x: 0, y: 0, z: 0 }, gyroscope: { x: 0, y: 0, z: 0 }, emg: 220 }, analysisDetails: { tremorFrequency: 5.2, graspQuality: 65, emgRms: 220, overallSeverity: 58 }, source: 'manual', duration: 10 },
+    { id: `analysis_${now - 5 * day}_a2`, timestamp: new Date(now - 5 * day).toISOString(), analysisCount: now - 5 * day, parkinsonLevel: 2, parkinsonDescription: 'Sample · Mild — Mild', confidence: 82, recommendation: 'Demo sample. Tremor ≈ 1.60 Hz, EMG RMS ≈ 80.0', recommendedResistance: 20, sensorData: { fingerPositions: [45, 50, 55, 50, 48], accelerometer: { x: 0, y: 0, z: 0 }, gyroscope: { x: 0, y: 0, z: 0 }, emg: 80 }, analysisDetails: { tremorFrequency: 1.6, graspQuality: 82, emgRms: 80, overallSeverity: 22 }, source: 'manual', duration: 10 },
+    { id: `analysis_${now - 2 * day}_a3`, timestamp: new Date(now - 2 * day).toISOString(), analysisCount: now - 2 * day, parkinsonLevel: 2, parkinsonDescription: 'Sample · Mild — Mild', confidence: 85, recommendation: 'Demo sample. Tremor ≈ 1.40 Hz, EMG RMS ≈ 72.0', recommendedResistance: 20, sensorData: { fingerPositions: [42, 48, 52, 47, 45], accelerometer: { x: 0, y: 0, z: 0 }, gyroscope: { x: 0, y: 0, z: 0 }, emg: 72 }, analysisDetails: { tremorFrequency: 1.4, graspQuality: 85, emgRms: 72, overallSeverity: 18 }, source: 'manual', duration: 10 },
+  ];
+
+  const rehabSessions = [
+    { id: `rehab_${now - 6 * day}`, timestamp: new Date(now - 6 * day).toISOString(), gameType: 'sine-wave', difficulty: 'easy', fingerMode: 'average', durationMs: 120000, reps: 24, score: 1850, accuracy: 72, bestStreak: 8, pointsEarned: 40 },
+    { id: `rehab_${now - 5 * day}`, timestamp: new Date(now - 5 * day).toISOString(), gameType: 'tea-pour', difficulty: 'easy', fingerMode: 'index', durationMs: 95000, reps: 18, score: 1420, accuracy: 68, bestStreak: 6, pointsEarned: 30 },
+    { id: `rehab_${now - 4 * day}`, timestamp: new Date(now - 4 * day).toISOString(), gameType: 'sine-wave', difficulty: 'medium', fingerMode: 'thumb', durationMs: 140000, reps: 30, score: 2600, accuracy: 80, bestStreak: 12, pointsEarned: 65 },
+    { id: `rehab_${now - 3 * day}`, timestamp: new Date(now - 3 * day).toISOString(), gameType: 'fish-catch', difficulty: 'easy', fingerMode: 'middle', durationMs: 110000, reps: 22, score: 1700, accuracy: 75, bestStreak: 9, pointsEarned: 45 },
+    { id: `rehab_${now - 2 * day}`, timestamp: new Date(now - 2 * day).toISOString(), gameType: 'sine-wave', difficulty: 'medium', fingerMode: 'average', durationMs: 150000, reps: 34, score: 2950, accuracy: 83, bestStreak: 15, pointsEarned: 75 },
+    { id: `rehab_${now - 1 * day}`, timestamp: new Date(now - 1 * day).toISOString(), gameType: 'tea-pour', difficulty: 'medium', fingerMode: 'index', durationMs: 130000, reps: 28, score: 2300, accuracy: 78, bestStreak: 11, pointsEarned: 55 },
+  ];
+
+  const rewardsState = { totalPoints: 310, currentStreak: 6, longestStreak: 6, lastActiveDay: new Date(now - 1 * day).toISOString().slice(0, 10) };
+
+  localStorage.setItem('steadigrip_user_profile', JSON.stringify(profile));
+  localStorage.setItem('parkinson_analysis_records', JSON.stringify(analysisRecords));
+  localStorage.setItem('steadigrip_rehab_sessions', JSON.stringify(rehabSessions));
+  localStorage.setItem('steadigrip_rewards_state', JSON.stringify(rewardsState));
+  window.location.reload();
+}
+
 export default function HomePage() {
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -123,19 +153,19 @@ export default function HomePage() {
       <AppTopBar />
 
               {/* News ticker - double layer */}
-        <div className="w-full overflow-hidden flex flex-col" style={{ backgroundColor: '#004E80' }}>
+        <div className="w-full overflow-hidden flex flex-col bg-[#004E80]/20 dark:bg-[#004E80]">
           {/* Top row — scrolls left */}
-          <div className="h-16 sm:h-28 md:h-40 overflow-hidden relative flex items-center">
+          <div className="h-20 sm:h-28 md:h-40 overflow-hidden relative flex items-center">
             <div className="absolute whitespace-nowrap animate-ticker-slow flex items-center h-full">
-              <span className="inline-block px-8 sm:px-14 md:px-20 text-5xl sm:text-[120px] md:text-[240px] font-black" style={{ color: 'rgba(0, 0, 0, 0.2)' }}>
+              <span className="inline-block px-10 sm:px-14 md:px-20 text-[80px] sm:text-[120px] md:text-[240px] font-black text-[#004E80]/30 dark:text-black/20">
                 {Array(10).fill('SteadiGrip: Affordable AI Parkinson\'s Rehab').join(' • ')}
               </span>
             </div>
           </div>
           {/* Bottom row — scrolls right (reverse) */}
-          <div className="h-16 sm:h-28 md:h-40 overflow-hidden relative flex items-center">
+          <div className="h-8 sm:h-10 md:h-14 overflow-hidden relative flex items-center">
             <div className="absolute whitespace-nowrap animate-ticker-reverse flex items-center h-full">
-              <span className="inline-block px-8 sm:px-14 md:px-20 text-5xl sm:text-[120px] md:text-[240px] font-black" style={{ color: 'rgba(0, 0, 0, 0.2)' }}>
+              <span className="inline-block px-4 sm:px-5 md:px-7 text-[32px] sm:text-[40px] md:text-[80px] font-black text-[#004E80]/30 dark:text-black/20">
                 {Array(10).fill('SteadiGrip: Affordable AI Parkinson\'s Rehab').join(' • ')}
               </span>
             </div>
@@ -176,7 +206,7 @@ export default function HomePage() {
             {!didTrainToday && (
               <Link
                 href="/rehab"
-                className="mb-6 block w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 p-4 text-center text-white shadow-md hover:shadow-lg active:scale-[0.99] transition"
+                className="mb-6 block w-full rounded-2xl bg-[#004E80] p-4 text-center text-white shadow-md hover:bg-[#003a61] active:scale-[0.99] transition"
               >
                 <div className="text-xs uppercase tracking-wider opacity-90">Just feel like 30 seconds?</div>
                 <div className="mt-0.5 text-lg font-bold">Tap here to start a quick session →</div>
@@ -196,7 +226,7 @@ export default function HomePage() {
                 description="View your personal info and analysis history."
                 cta="View Profile"
                 href="/profile"
-                accentClass="from-blue-500 to-blue-600"
+                accentClass="from-[#004E80] to-[#0070b8]"
               />
               <DashCard
                 icon="🔬"
@@ -204,7 +234,7 @@ export default function HomePage() {
                 description="Capture motion, sensor and voice data."
                 cta="Start Collection"
                 href="/record"
-                accentClass="from-indigo-500 to-indigo-600"
+                accentClass="from-[#004E80] to-[#0070b8]"
               />
               <DashCard
                 icon="🏋️"
@@ -216,7 +246,7 @@ export default function HomePage() {
                 }
                 cta={didTrainToday ? 'Train again' : 'Start Session'}
                 href="/rehab"
-                accentClass="from-purple-500 to-purple-600"
+                accentClass="from-[#004E80] to-[#0070b8]"
                 extra={lastRehabAt ? `Last: ${formatRelativeTime(lastRehabAt)}` : undefined}
               />
               <DashCard
@@ -225,7 +255,7 @@ export default function HomePage() {
                 description="Grow plants with every session you complete."
                 cta="Tend Garden"
                 href="/garden"
-                accentClass="from-emerald-500 to-green-600"
+                accentClass="from-[#004E80] to-[#0070b8]"
               />
               <DashCard
                 icon="🏆"
@@ -233,15 +263,15 @@ export default function HomePage() {
                 description="Achievements, medals and your card album."
                 cta="View Rewards"
                 href="/rewards"
-                accentClass="from-amber-500 to-orange-600"
+                accentClass="from-[#004E80] to-[#0070b8]"
               />
               <DashCard
                 icon="📄"
-                title="Progress Card & Data Manage"
+                title="Progress Card"
                 description="Share your progress with family or your doctor."
                 cta="View Report"
                 href="/summary-card"
-                accentClass="from-rose-500 to-pink-600"
+                accentClass="from-[#004E80] to-[#0070b8]"
               />
             </div>
 
@@ -264,10 +294,16 @@ export default function HomePage() {
                 </p>
                 <Link
                   href="/onboarding"
-                  className="block w-full py-3 px-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl hover:opacity-90 active:scale-95 transition-all"
+                  className="block w-full py-3 px-6 bg-[#004E80] text-white font-semibold rounded-xl hover:bg-[#003a61] active:scale-95 transition-all"
                 >
                   Continue
                 </Link>
+                <button
+                  onClick={loadTestProfile}
+                  className="mt-3 block w-full py-2.5 px-6 bg-transparent border border-gray-300 dark:border-neutral-600 text-gray-600 dark:text-gray-400 text-sm font-medium rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 active:scale-95 transition-all"
+                >
+                  Import Test Profile
+                </button>
               </div>
             </div>
           </div>
@@ -364,7 +400,7 @@ function RewardsSummary({
   didTrainToday: boolean;
 }) {
   const flameTone = rewards.currentStreak > 0
-    ? 'from-orange-400 to-red-500'
+    ? 'from-[#004E80] to-[#0070b8]'
     : 'from-gray-300 to-gray-400 dark:from-neutral-700 dark:to-neutral-600';
   return (
     <div className="mb-6 grid grid-cols-3 gap-3">
@@ -386,7 +422,7 @@ function RewardsSummary({
 
       {/* Points */}
       <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl p-3 flex flex-col items-center justify-center text-center">
-        <div className="mb-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 text-white">
+        <div className="mb-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#004E80] text-white">
           <Star size={18} />
         </div>
         <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none">
@@ -397,7 +433,7 @@ function RewardsSummary({
 
       {/* Level */}
       <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl p-3 flex flex-col items-center justify-center text-center">
-        <div className="mb-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-white">
+        <div className="mb-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#004E80] text-white">
           <Trophy size={18} />
         </div>
         <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none">
@@ -406,7 +442,7 @@ function RewardsSummary({
         <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">{levelInfo.tier}</div>
         <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-neutral-800">
           <div
-            className="h-full bg-gradient-to-r from-purple-500 to-indigo-500"
+            className="h-full bg-[#004E80]"
             style={{ width: `${Math.round(levelInfo.progress01 * 100)}%` }}
           />
         </div>
@@ -433,7 +469,7 @@ function DailyQuestsCard({ snapshot, didTrainToday }: { snapshot: DailyQuestSnap
       {!didTrainToday && (
         <Link
           href="/rehab"
-          className="mt-4 block w-full rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:opacity-90 active:scale-95 transition"
+          className="mt-4 block w-full rounded-xl bg-[#004E80] px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-[#003a61] active:scale-95 transition"
         >
           Start training to make progress →
         </Link>
@@ -444,13 +480,13 @@ function DailyQuestsCard({ snapshot, didTrainToday }: { snapshot: DailyQuestSnap
 
 function ComebackBanner() {
   return (
-    <div className="mb-6 rounded-2xl bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/30 dark:to-blue-900/30 border border-cyan-200 dark:border-cyan-700/40 p-4 flex items-center gap-3">
+    <div className="mb-6 rounded-2xl bg-[#004E80]/8 dark:bg-[#004E80]/20 border border-[#004E80]/20 dark:border-[#004E80]/40 p-4 flex items-center gap-3">
       <div className="text-3xl">🌱</div>
       <div className="flex-1">
-        <div className="text-sm font-semibold text-cyan-800 dark:text-cyan-100">
+        <div className="text-sm font-semibold text-[#004E80] dark:text-[#5aade0]">
           Welcome back!
         </div>
-        <div className="text-xs text-cyan-700/90 dark:text-cyan-200/90">
+        <div className="text-xs text-[#004E80]/80 dark:text-[#5aade0]/80">
           Your last streak is on pause — finish any session today to start a new one. No penalties, just keep going.
         </div>
       </div>
@@ -477,7 +513,7 @@ function QuestRow({ quest, progress }: { quest: QuestDefinition; progress: Quest
       </div>
       <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-neutral-700">
         <div
-          className={`h-full ${completed ? 'bg-emerald-500' : 'bg-gradient-to-r from-purple-500 to-indigo-500'}`}
+          className={`h-full ${completed ? 'bg-emerald-500' : 'bg-[#004E80]'}`}
           style={{ width: `${Math.round(ratio * 100)}%` }}
         />
       </div>
