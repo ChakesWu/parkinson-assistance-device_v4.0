@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BrainCircuit, Activity, Book, Settings, Brain } from 'lucide-react';
 import { getRecommendations, classifySeverity } from '@/lib/ai/recommendations';
 import { analysisRecordService } from '@/services/analysisRecordService';
+import { getRecommendedTraining, getLevelLabelZh } from '@/utils/parkinsonClassifier';
 import { Sidebar, SidebarBody, SidebarLink, useSidebar } from "@/components/ui/sidebar";
 import { useGlobalConnection } from '@/hooks/useGlobalConnection';
 import AppTopBar from '@/components/ui/AppTopBar';
@@ -20,6 +21,8 @@ export default function AIAnalysisPage() {
     recommendedResistance: 0
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showTrainingConfirm, setShowTrainingConfirm] = useState(false);
+  const [trainingLevel, setTrainingLevel] = useState(2);
   const [sensorData, setSensorData] = useState({
     fingerPositions: [0, 0, 0, 0, 0],
     accelerometer: { x: 0, y: 0, z: 0 },
@@ -290,6 +293,11 @@ export default function AIAnalysisPage() {
       };
       setAnalysisData(newAnalysisData);
       setGroups(getRecommendations(severity));
+
+      // Compute level (severity 0-100 -> level 1-5) and trigger training modal
+      const parkinsonLevelForModal = Math.max(1, Math.min(5, Math.round(severity / 20) || 1));
+      setTrainingLevel(parkinsonLevelForModal);
+      setShowTrainingConfirm(true);
 
       // Save analysis record
       try {
@@ -720,6 +728,47 @@ export default function AIAnalysisPage() {
             </div>
           </div>
         )}
+
+        {/* Training Confirmation Modal */}
+        {showTrainingConfirm && (() => {
+          const rec = getRecommendedTraining(trainingLevel);
+          return (
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+              <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 w-full max-w-lg shadow-lg">
+                <h4 className="text-lg font-semibold mb-2">Recommended Training</h4>
+                <div className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                  Detection result: <span className="font-semibold">Level {trainingLevel} &middot; {getLevelLabelZh(trainingLevel)}</span>
+                  {analysisData.confidence > 0 && (
+                    <span className="ml-2 text-xs text-gray-500">(Confidence {analysisData.confidence.toFixed(0)}%)</span>
+                  )}
+                </div>
+                <div className="p-3 mb-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="font-medium text-blue-800 dark:text-blue-200 mb-1">
+                    Recommended: {rec.modeLabel} &mdash; {rec.modeNameZh}
+                  </div>
+                  <div className="text-xs text-blue-700 dark:text-blue-300 mb-2">
+                    Duration: {rec.durationSec} s &nbsp;&middot;&nbsp; Active servos: {rec.activeServos}
+                  </div>
+                  <div className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {rec.rationale}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button className="px-3 py-1 rounded bg-gray-200 dark:bg-neutral-700" onClick={() => setShowTrainingConfirm(false)}>Skip</button>
+                  <button
+                    className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+                    onClick={() => {
+                      sendCommand(rec.mode);
+                      setShowTrainingConfirm(false);
+                    }}
+                  >
+                    Start {rec.mode}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Quick access links */}
         <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6">

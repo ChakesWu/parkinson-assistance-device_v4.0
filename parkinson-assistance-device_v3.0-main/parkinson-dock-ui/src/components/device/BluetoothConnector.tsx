@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { BluetoothManager, SensorData, AIResult } from '@/utils/bluetoothManager';
 import { analysisRecordService, AnalysisRecord } from '@/services/analysisRecordService';
 import { analysisRecordService } from '@/services/analysisRecordService';
+import { getRecommendedTraining, getLevelLabelZh } from '@/utils/parkinsonClassifier';
 
 export interface BluetoothConnectorProps {
   onDataReceived?: (data: Partial<SensorData>) => void;
@@ -562,29 +563,46 @@ export default function BluetoothConnector({ onDataReceived }: BluetoothConnecto
       )}
 
       {/* Training Confirmation Modal */}
-      {showTrainingConfirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 w-full max-w-md shadow-lg">
-            <h4 className="text-lg font-semibold mb-3">Start 20-second Resistance Training?</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-              AI Recommended Level: {aiAnalysisData.parkinsonLevel}, Recommended Resistance: {getRecommendedResistance(aiAnalysisData.parkinsonLevel)}°
-            </p>
-            <div className="flex justify-end gap-2">
-              <button className="px-3 py-1 rounded bg-gray-200 dark:bg-neutral-700" onClick={() => setShowTrainingConfirm(false)}>Cancel</button>
-              <button
-                className="px-3 py-1 rounded bg-blue-600 text-white"
-                onClick={() => {
-                  const level = Math.max(1, Math.min(5, aiAnalysisData.parkinsonLevel || 2));
-                  sendCommand(`TRAIN_SERVO,20000,0,${level}`);
-                  setShowTrainingConfirm(false);
-                }}
-              >
-                Start Training
-              </button>
+      {showTrainingConfirm && (() => {
+        const lv = Math.max(1, Math.min(5, aiAnalysisData.parkinsonLevel || 2));
+        const rec = getRecommendedTraining(lv);
+        return (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 w-full max-w-lg shadow-lg">
+              <h4 className="text-lg font-semibold mb-2">Recommended Training</h4>
+              <div className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                Detection result: <span className="font-semibold">Level {lv} &middot; {getLevelLabelZh(lv)}</span>
+                {aiAnalysisData.confidence > 0 && (
+                  <span className="ml-2 text-xs text-gray-500">(Confidence {aiAnalysisData.confidence.toFixed(0)}%)</span>
+                )}
+              </div>
+              <div className="p-3 mb-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div className="font-medium text-blue-800 dark:text-blue-200 mb-1">
+                  Recommended: {rec.modeLabel} &mdash; {rec.modeNameZh}
+                </div>
+                <div className="text-xs text-blue-700 dark:text-blue-300 mb-2">
+                  Duration: {rec.durationSec} s &nbsp;&middot;&nbsp; Active servos: {rec.activeServos}
+                </div>
+                <div className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
+                  {rec.rationale}
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button className="px-3 py-1 rounded bg-gray-200 dark:bg-neutral-700" onClick={() => setShowTrainingConfirm(false)}>Skip</button>
+                <button
+                  className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+                  onClick={() => {
+                    sendCommand(rec.mode);
+                    setShowTrainingConfirm(false);
+                  }}
+                >
+                  Start {rec.mode}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
